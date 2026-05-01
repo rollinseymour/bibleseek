@@ -1,0 +1,32 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-divider">
+  <div
+    class="mx-auto max-w-6xl px-5 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+  >
+    <div class="flex items-center gap-2">
+      <span
+        class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-accent text-cream font-serif text-xs font-bold"
+        aria-hidden="true"
+      >
+        B
+      </span>
+      <span class="text-sm font-medium text-ink-soft">
+        © {year} Bible Seek
+      </span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
+      <a href="/privacy" class="hover:text-accent transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-accent transition-colors">Terms</a>
+      <a
+        href="mailto:hello@bibleseekapp.com"
+        class="hover:text-accent transition-colors"
+      >
+        Contact
+      </a>
+    </nav>
+  </div>
+</footer>

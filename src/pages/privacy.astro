@@ -1,0 +1,86 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+
+const lastUpdated = "April 28, 2026";
+---
+
+<Layout
+  title="Privacy Policy — Bible Seek"
+  description="What Bible Seek does (and doesn't) do with your data."
+  path="/privacy"
+>
+  <Nav />
+  <main class="mx-auto max-w-3xl px-5 py-16 md:py-24">
+    <p class="text-xs font-semibold tracking-widest uppercase text-accent">
+      Privacy
+    </p>
+    <h1
+      class="mt-3 font-serif text-4xl sm:text-5xl font-bold text-ink leading-tight"
+    >
+      Privacy Policy
+    </h1>
+    <p class="mt-3 text-sm text-ink-muted">Last updated {lastUpdated}</p>
+
+    <div
+      class="prose prose-neutral mt-10 max-w-none text-ink-soft leading-relaxed [&_h2]:font-serif [&_h2]:text-2xl [&_h2]:text-ink [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:font-semibold [&_p]:my-4 [&_a]:text-accent [&_a]:underline"
+    >
+      <p>
+        Bible Seek (the "app") is built to respect your reading life. This
+        page describes what data the app touches, what it never touches,
+        and how to reach us if you have questions.
+      </p>
+
+      <h2>What stays on your device</h2>
+      <p>
+        Everything you create inside the app — highlights, notes,
+        bookmarks, reading position, custom reading plans, memory verses,
+        and tags — is stored locally on your iPhone using Apple's standard
+        on-device storage (UserDefaults / SharedPreferences). None of it
+        is uploaded to a server, and we have no account system.
+      </p>
+
+      <h2>What we don't collect</h2>
+      <p>
+        Bible Seek does not collect personal information. There is no
+        analytics SDK, no advertising SDK, no crash-reporting service,
+        and no first- or third-party tracking. We do not see what you
+        read, highlight, or note.
+      </p>
+
+      <h2>Network usage</h2>
+      <p>
+        The Bible text, lexicon, cross-references, and topics ship with
+        the app and are read entirely offline. The only outbound network
+        call the app can make is when you tap a link in the "Get in
+        touch" form to send feedback by email — your mail app handles
+        that delivery; we don't intercept it.
+      </p>
+
+      <h2>iOS system features</h2>
+      <p>
+        With your permission, the app uses iOS notifications (for reading
+        reminders you opt into), iOS Spotlight indexing (so your saved
+        annotations are searchable from the system search), and the iOS
+        widget extension (so today's verse appears on your home screen).
+        All three are local to your device.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If we ever materially change how the app handles data, we'll
+        update this page and bump the "Last updated" date above. Because
+        the app currently collects nothing, that is unlikely.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions or concerns: <a href="mailto:hello@bibleseekapp.com"
+          >hello@bibleseekapp.com</a
+        >.
+      </p>
+    </div>
+  </main>
+  <Footer />
+</Layout>

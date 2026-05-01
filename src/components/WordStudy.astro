@@ -1,0 +1,89 @@
+---
+/**
+ * Spotlight section for the Word Study feature — the app's clearest
+ * differentiator from competitors. Two-column layout: the pitch on the
+ * left, a stylised "lookup card" preview on the right that mirrors what
+ * the user actually sees in the app.
+ */
+---
+
+<section id="word-study" class="border-t border-divider">
+  <div
+    class="mx-auto max-w-6xl px-5 py-20 md:py-28 grid md:grid-cols-2 gap-10 md:gap-16 items-center"
+  >
+    <!-- Pitch column -->
+    <div>
+      <p class="text-xs font-semibold tracking-widest uppercase text-accent">
+        Word study
+      </p>
+      <h2
+        class="mt-3 font-serif text-3xl sm:text-4xl font-bold text-ink leading-tight"
+      >
+        Original meaning, instantly.
+      </h2>
+      <p class="mt-5 text-base text-ink-soft leading-relaxed">
+        Every word in the King James Bible maps to its underlying Hebrew or
+        Greek root. Hold any word — see the lemma, transliteration, part of
+        speech, and a one-paragraph definition. The full Strong's
+        Concordance, all offline.
+      </p>
+
+      <dl class="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 max-w-md">
+        <div>
+          <dt class="font-serif text-3xl font-bold text-accent">5,624</dt>
+          <dd class="mt-1 text-sm text-ink-soft">Greek lemmas</dd>
+        </div>
+        <div>
+          <dt class="font-serif text-3xl font-bold text-accent">8,674</dt>
+          <dd class="mt-1 text-sm text-ink-soft">Hebrew lemmas</dd>
+        </div>
+        <div>
+          <dt class="font-serif text-3xl font-bold text-accent">9,800+</dt>
+          <dd class="mt-1 text-sm text-ink-soft">English surface forms</dd>
+        </div>
+        <div>
+          <dt class="font-serif text-3xl font-bold text-accent">0</dt>
+          <dd class="mt-1 text-sm text-ink-soft">Network calls required</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Mocked lookup card — visual echo of the in-app UI without
+         loading the actual app. Stays in cream-on-cream for cohesion. -->
+    <div class="relative md:justify-self-end w-full max-w-md">
+      <div
+        class="rounded-2xl bg-cream-2 ring-1 ring-divider p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)]"
+      >
+        <div class="flex items-center justify-between">
+          <span
+            class="text-[10px] font-bold tracking-widest uppercase text-accent bg-accent/10 px-2 py-1 rounded"
+          >
+            Word Study
+          </span>
+          <span class="text-xs italic text-ink-muted">"agape"</span>
+        </div>
+
+        <div class="mt-5 rounded-xl bg-cream p-5 ring-1 ring-divider/60">
+          <div class="flex items-center gap-3">
+            <span
+              class="text-[10px] font-bold tracking-wider uppercase text-cream bg-[#3563B5]/85 px-2 py-1 rounded"
+            >
+              Greek · G26
+            </span>
+            <span class="text-xs text-ink-muted">noun, fem.</span>
+          </div>
+          <p class="mt-4 font-serif text-3xl text-ink">ἀγάπη</p>
+          <p class="mt-1 text-sm italic text-accent">agápē</p>
+          <p class="mt-4 text-sm leading-relaxed text-ink-soft">
+            Love — chiefly self-giving, choice-driven love. The love that
+            defines God's nature in 1 John 4:8.
+          </p>
+        </div>
+
+        <p class="mt-4 text-xs text-ink-muted text-center">
+          Tap any word in the reader → see the original.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

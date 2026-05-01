@@ -1,0 +1,105 @@
+---
+/**
+ * Hero — the page's primary message + the App Store CTA. Designed to
+ * fit "above the fold" on a typical phone screen so visitors see both
+ * the value prop and the download button without scrolling.
+ *
+ * The phone-shaped frame on the right is a CSS placeholder; drop an
+ * actual screenshot at /public/hero-screenshot.png to replace it (the
+ * <img> below picks it up automatically).
+ */
+---
+
+<section class="relative overflow-hidden">
+  <!-- Subtle radial wash so the cream background reads as intentional,
+       not flat. Pinned behind everything. -->
+  <div
+    class="pointer-events-none absolute inset-0 -z-10"
+    style="background: radial-gradient(circle at 20% 0%, rgba(122, 90, 45, 0.10), transparent 55%);"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div
+    class="mx-auto max-w-6xl px-5 pt-16 pb-20 md:pt-24 md:pb-28 grid md:grid-cols-2 gap-12 md:gap-8 items-center"
+  >
+    <!-- Text column -->
+    <div>
+      <p class="text-xs font-semibold tracking-widest uppercase text-accent">
+        Bible Seek for iPhone
+      </p>
+      <h1
+        class="mt-4 font-serif text-5xl sm:text-6xl font-bold leading-[1.05] tracking-tight text-ink"
+      >
+        Scripture,<br />made personal.
+      </h1>
+      <p class="mt-6 text-lg text-ink-soft leading-relaxed max-w-xl">
+        A reverent, offline-first Bible reader with verse highlighting,
+        study notes, custom reading plans, and original-language word
+        studies — all on your iPhone.
+      </p>
+
+      <div id="download" class="mt-8 flex flex-wrap items-center gap-4">
+        <!-- Replace href with your real App Store URL once the listing
+             is live. The visual "App Store" badge is rendered with CSS
+             so we don't have to ship Apple's binary asset. -->
+        <a
+          href="https://apps.apple.com/us/app/bible-seek/id6760152974"
+          class="group inline-flex items-center gap-3 rounded-xl bg-ink text-cream pl-4 pr-5 py-3 hover:bg-ink-soft transition-colors"
+        >
+          <svg
+            class="h-7 w-7"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M16.365 1.43c0 1.14-.412 2.21-1.236 3.207-.99 1.18-2.184 1.864-3.482 1.748-.146-1.13.41-2.298 1.207-3.18.892-.99 2.21-1.71 3.51-1.775ZM20.5 17.65c-.59 1.32-.866 1.91-1.625 3.078-1.058 1.638-2.55 3.677-4.4 3.692-1.642.014-2.067-1.07-4.298-1.058-2.232.013-2.696 1.078-4.34 1.064-1.85-.014-3.262-1.857-4.32-3.495C-.65 17.7-1.3 13.06 1.275 10.04c1.43-1.677 3.69-2.74 5.81-2.74 2.16 0 3.524 1.18 5.31 1.18 1.732 0 2.788-1.183 5.286-1.183 1.886 0 3.882 1.027 5.297 2.804-4.66 2.553-3.9 9.214-2.478 7.55Z"
+            />
+          </svg>
+          <span class="flex flex-col leading-tight text-left">
+            <span class="text-[10px] tracking-wider uppercase text-cream/70"
+              >Download on the</span
+            >
+            <span class="text-base font-semibold">App Store</span>
+          </span>
+        </a>
+        <p class="text-sm text-ink-muted">Free · iOS 16.0 or later</p>
+      </div>
+    </div>
+
+    <!-- Visual column: phone frame + screenshot placeholder -->
+    <div class="relative md:justify-self-end">
+      <div
+        class="relative mx-auto w-[260px] sm:w-[300px] aspect-[9/19.5] rounded-[44px] bg-ink p-2.5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.4)] ring-1 ring-black/10"
+      >
+        <div
+          class="h-full w-full rounded-[36px] bg-cream-2 overflow-hidden flex items-center justify-center text-ink-muted text-xs"
+        >
+          <!-- Drop a 1170x2532 (3x) screenshot at this path to replace
+               the placeholder. The <img> only renders if the file
+               exists at build time. -->
+          <img
+            src="/hero-screenshot.png"
+            alt="Bible Seek reader showing Psalms 23"
+            class="h-full w-full object-cover"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div
+            class="hidden h-full w-full items-center justify-center text-center px-6 leading-relaxed"
+          >
+            Drop a screenshot at<br /><code
+              class="text-accent">/public/hero-screenshot.png</code
+            >
+          </div>
+        </div>
+        <!-- Notch -->
+        <div
+          class="absolute top-2.5 left-1/2 -translate-x-1/2 h-6 w-28 rounded-b-2xl bg-ink"
+          aria-hidden="true"
+        >
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

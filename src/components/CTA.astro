@@ -1,0 +1,56 @@
+---
+/**
+ * Closing call-to-action — second App Store nudge for visitors who
+ * scrolled all the way down. Visually stronger than the hero CTA
+ * (filled accent block, large type) so it reads as the page's
+ * conclusion.
+ */
+---
+
+<section class="border-t border-divider">
+  <div class="mx-auto max-w-6xl px-5 py-20 md:py-24">
+    <div
+      class="rounded-3xl bg-accent text-cream p-10 md:p-14 text-center relative overflow-hidden"
+    >
+      <!-- Soft radial highlight in the corner so the block has depth. -->
+      <div
+        class="pointer-events-none absolute inset-0"
+        style="background: radial-gradient(circle at 80% 0%, rgba(255,255,255,0.15), transparent 60%);"
+        aria-hidden="true"
+      >
+      </div>
+
+      <h2
+        class="relative font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight"
+      >
+        The Word, in your pocket.
+      </h2>
+      <p class="relative mt-4 text-cream/85 max-w-xl mx-auto leading-relaxed">
+        Free. Offline. Reverent. Built by one person who wanted a Bible
+        reader that felt like reading scripture, not using an app.
+      </p>
+
+      <a
+        href="https://apps.apple.com/us/app/bible-seek/id6760152974"
+        class="relative mt-8 inline-flex items-center gap-3 rounded-xl bg-cream text-ink pl-4 pr-5 py-3 hover:bg-cream-2 transition-colors"
+      >
+        <svg
+          class="h-7 w-7"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M16.365 1.43c0 1.14-.412 2.21-1.236 3.207-.99 1.18-2.184 1.864-3.482 1.748-.146-1.13.41-2.298 1.207-3.18.892-.99 2.21-1.71 3.51-1.775ZM20.5 17.65c-.59 1.32-.866 1.91-1.625 3.078-1.058 1.638-2.55 3.677-4.4 3.692-1.642.014-2.067-1.07-4.298-1.058-2.232.013-2.696 1.078-4.34 1.064-1.85-.014-3.262-1.857-4.32-3.495C-.65 17.7-1.3 13.06 1.275 10.04c1.43-1.677 3.69-2.74 5.81-2.74 2.16 0 3.524 1.18 5.31 1.18 1.732 0 2.788-1.183 5.286-1.183 1.886 0 3.882 1.027 5.297 2.804-4.66 2.553-3.9 9.214-2.478 7.55Z"
+          />
+        </svg>
+        <span class="flex flex-col leading-tight text-left">
+          <span class="text-[10px] tracking-wider uppercase text-ink-muted"
+            >Download on the</span
+          >
+          <span class="text-base font-semibold">App Store</span>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>

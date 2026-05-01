@@ -1,0 +1,61 @@
+---
+import "../styles/global.css";
+
+/**
+ * Shared HTML shell. Pages provide their own <slot /> content; this
+ * layout owns metadata (title, description, OG tags) so individual
+ * pages don't have to duplicate the boilerplate.
+ *
+ * Defaults reflect the marketing landing page; sub-pages can override
+ * via the `title` and `description` props.
+ */
+interface Props {
+  title?: string;
+  description?: string;
+  /** Path used for the canonical + OG URL (without origin). */
+  path?: string;
+}
+
+const {
+  title = "Bible Seek — Scripture, made personal",
+  description =
+    "A reverent, offline-first Bible reader for iPhone with verse highlighting, study notes, custom reading plans, and original-language word studies.",
+  path = "/",
+} = Astro.props;
+
+const canonical = new URL(path, Astro.site ?? "https://bibleseekapp.com").href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#FAF7F0" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph / iMessage / WhatsApp / Twitter card. The og:image
+         points to a static asset in /public — drop a 1200x630 PNG at
+         /public/og.png to populate link previews. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:site_name" content="Bible Seek" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/og.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body class="bg-cream text-ink antialiased">
+    <slot />
+  </body>
+</html>

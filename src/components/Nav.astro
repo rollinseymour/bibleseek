@@ -1,0 +1,54 @@
+---
+/**
+ * Slim top nav. Logo on the left (links to home), in-page anchor links
+ * in the middle, App Store CTA on the right. Hides anchor links on
+ * mobile to keep the bar uncluttered — the CTA is the important
+ * affordance there.
+ */
+---
+
+<header
+  class="sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-cream/75 bg-cream border-b border-divider"
+>
+  <div class="mx-auto max-w-6xl px-5 py-3 flex items-center justify-between">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-ink hover:text-accent transition-colors"
+    >
+      <span
+        class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-accent text-cream font-serif text-sm font-bold"
+        aria-hidden="true"
+      >
+        B
+      </span>
+      <span class="font-serif text-lg font-semibold tracking-tight">
+        Bible Seek
+      </span>
+    </a>
+
+    <nav class="hidden sm:flex items-center gap-7 text-sm text-ink-soft">
+      <a href="#features" class="hover:text-accent transition-colors">Features</a>
+      <a href="#word-study" class="hover:text-accent transition-colors">Word Study</a>
+      <a href="#screenshots" class="hover:text-accent transition-colors">Screenshots</a>
+    </nav>
+
+    <a
+      href="#download"
+      class="inline-flex items-center gap-1.5 rounded-full bg-accent text-cream px-4 py-1.5 text-sm font-medium hover:bg-accent-soft transition-colors"
+    >
+      Get the app
+      <svg
+        class="h-3.5 w-3.5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </a>
+  </div>
+</header>
