@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Brand mark — cream "B" on a brown rounded square. Mirrors the Nav
-  logo so a pinned tab and the page header read as the same identity.
-  Pure SVG, no external font; the glyph picks up the user's installed
-  serif so it stays legible at any size.
+  Simplified brand mark for small contexts (browser tab favicon, nav
+  bar, footer). The full app icon (open Bible + magnifying glass +
+  crucifix) is too detailed at 16-32 px, so we extract its signifying
+  element: a magnifying glass with a cross inside the lens. Pure SVG
+  so it stays crisp at any size.
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
@@ -11,14 +12,23 @@
   width="32"
   height="32"
 >
+  <!-- Tile background, brand brown -->
   <rect width="32" height="32" rx="7" fill="#7A5A2D" />
-  <text
-    x="16"
-    y="22"
-    text-anchor="middle"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="20"
-    font-weight="700"
-    fill="#FAF7F0"
-  >B</text>
+
+  <!-- Magnifying glass: lens centered upper-left, handle to bottom-right -->
+  <g
+    fill="none"
+    stroke="#FAF7F0"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+    <circle cx="13" cy="13" r="6" />
+    <line x1="17.5" y1="17.5" x2="24" y2="24" />
+  </g>
+
+  <!-- Cross inside the lens -->
+  <g fill="#FAF7F0">
+    <rect x="12.25" y="9" width="1.5" height="8" rx="0.3" />
+    <rect x="10.5" y="11.5" width="5" height="1.5" rx="0.3" />
+  </g>
 </svg>
