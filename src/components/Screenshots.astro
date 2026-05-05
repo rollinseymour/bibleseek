@@ -14,10 +14,10 @@
 // mockups + copy baked in) should set `framed: false` so they aren't
 // double-framed.
 const screenshots = [
-  { src: "/screen-1.png", alt: "Reader showing John 3:16 with a yellow highlight", framed: false },
-  { src: "/screen-2.png", alt: "Word study card for the Greek word agape", framed: false },
-  { src: "/screen-3.png", alt: "Custom reading plan progress on the home screen", framed: true },
-  { src: "/screen-4.png", alt: "Memory verses fill-in-the-blank screen", framed: true },
+  { src: "/screen-1.png", alt: "Bible Seek home screen with continue reading and verse of the day", framed: true },
+  { src: "/screen-2.png", alt: "John 3:16 reader view with fill-in-the-blank word tiles", framed: true },
+  { src: "/screen-3.png", alt: "Word study lookup for the English word husband", framed: true },
+  { src: "/screen-4.png", alt: "Journal screen listing highlights and notes", framed: true },
 ];
 ---
 
@@ -41,13 +41,13 @@ const screenshots = [
         screenshots.map((s) =>
           s.framed ? (
             <div class="snap-center shrink-0 w-[220px] sm:w-[240px]">
-              <div class="aspect-[9/19.5] rounded-[32px] bg-ink p-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.35)] ring-1 ring-black/10">
+              <div class="aspect-[1290/2796] rounded-[32px] bg-ink p-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.35)] ring-1 ring-black/10">
                 <div class="h-full w-full rounded-[26px] bg-ink overflow-hidden flex items-center justify-center text-ink-muted text-[11px] text-center px-3 leading-snug">
                   <img
                     src={s.src}
                     alt={s.alt}
                     loading="lazy"
-                    class="h-full w-full object-contain"
+                    class="h-full w-full object-cover"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                   />
                   <div class="hidden h-full w-full items-center justify-center text-center px-2 bg-cream-2">
