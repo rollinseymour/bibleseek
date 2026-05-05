@@ -40,11 +40,14 @@
       </p>
 
       <div id="download" class="mt-8 flex flex-wrap items-center gap-4">
-        <!-- Replace href with your real App Store URL once the listing
-             is live. The visual "App Store" badge is rendered with CSS
-             so we don't have to ship Apple's binary asset. -->
+        <!-- The visual "App Store" badge is rendered with CSS so we
+             don't have to ship Apple's binary asset. The URL omits the
+             country code so Apple auto-redirects to the visitor's
+             regional store. -->
         <a
-          href="https://apps.apple.com/us/app/bible-seek/id6760152974"
+          href="https://apps.apple.com/app/id6760152974"
+          target="_blank"
+          rel="noopener noreferrer"
           class="group inline-flex items-center gap-3 rounded-xl bg-ink text-cream pl-4 pr-5 py-3 hover:bg-ink-soft transition-colors"
         >
           <svg
@@ -64,7 +67,7 @@
             <span class="text-base font-semibold">App Store</span>
           </span>
         </a>
-        <p class="text-sm text-ink-muted">Free · iOS 16.0 or later</p>
+        <p class="text-sm text-ink-muted">Free · iOS 13.0 or later</p>
       </div>
     </div>
 
