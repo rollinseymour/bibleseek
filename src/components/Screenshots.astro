@@ -35,14 +35,18 @@ const screenshots = [
           <div class="snap-center shrink-0 w-[220px] sm:w-[240px]">
             <div class="relative aspect-[490/990] drop-shadow-[0_20px_30px_rgba(0,0,0,0.35)]">
               <div class="absolute top-[1.11%] bottom-[1.21%] left-[2.45%] right-[2.45%] overflow-hidden rounded-[7%] bg-ink">
+                {/* Shifted down by 0.92% so the iOS status bar's dynamic
+                    island aligns under (and is masked by) the frame's
+                    island. The screenshot's bottom ~3% gets clipped —
+                    just the home indicator pill, not actual UI. */}
                 <img
                   src={s.src}
                   alt={s.alt}
                   loading="lazy"
-                  class="h-full w-full object-contain"
+                  class="absolute left-0 top-[0.92%] w-full h-auto"
                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                 />
-                <div class="hidden h-full w-full items-center justify-center text-center px-2 bg-cream-2 text-ink-muted text-[11px] leading-snug">
+                <div class="hidden absolute inset-0 items-center justify-center text-center px-2 bg-cream-2 text-ink-muted text-[11px] leading-snug">
                   Drop a screenshot at <code class="text-accent">{s.src}</code>
                 </div>
               </div>
