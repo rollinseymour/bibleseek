@@ -41,8 +41,8 @@ const screenshots = [
         screenshots.map((s) =>
           s.framed ? (
             <div class="snap-center shrink-0 w-[220px] sm:w-[240px]">
-              <div class="aspect-[1290/2796] rounded-[32px] bg-ink p-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.35)] ring-1 ring-black/10">
-                <div class="h-full w-full rounded-[26px] bg-ink overflow-hidden flex items-center justify-center text-ink-muted text-[11px] text-center px-3 leading-snug">
+              <div class="relative aspect-[490/990] drop-shadow-[0_20px_30px_rgba(0,0,0,0.35)]">
+                <div class="absolute top-[1.11%] bottom-[1.21%] left-[2.45%] right-[2.45%] overflow-hidden rounded-[7%] bg-ink">
                   <img
                     src={s.src}
                     alt={s.alt}
@@ -50,10 +50,16 @@ const screenshots = [
                     class="h-full w-full object-cover"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                   />
-                  <div class="hidden h-full w-full items-center justify-center text-center px-2 bg-cream-2">
+                  <div class="hidden h-full w-full items-center justify-center text-center px-2 bg-cream-2 text-ink-muted text-[11px] leading-snug">
                     Drop a screenshot at <code class="text-accent">{s.src}</code>
                   </div>
                 </div>
+                <img
+                  src="/iphone-frame.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="absolute inset-0 h-full w-full pointer-events-none"
+                />
               </div>
             </div>
           ) : (
