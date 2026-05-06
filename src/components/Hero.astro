@@ -4,9 +4,10 @@
  * fit "above the fold" on a typical phone screen so visitors see both
  * the value prop and the download button without scrolling.
  *
- * The phone-shaped frame on the right is a CSS placeholder; drop an
- * actual screenshot at /public/hero-screenshot.png to replace it (the
- * <img> below picks it up automatically).
+ * The phone on the right composites /public/hero-screenshot.png inside
+ * /public/iphone-frame.png so the bezel, side buttons, and Dynamic
+ * Island render on top of the screen content. Same compositing pattern
+ * as Screenshots.astro — see notes there for the screen-area insets.
  */
 ---
 
@@ -71,37 +72,33 @@
       </div>
     </div>
 
-    <!-- Visual column: phone frame + screenshot placeholder -->
+    <!-- Visual column: iPhone-framed hero screenshot -->
     <div class="relative md:justify-self-end">
       <div
-        class="relative mx-auto w-[260px] sm:w-[300px] aspect-[9/19.5] rounded-[44px] bg-ink p-2.5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.4)] ring-1 ring-black/10"
+        class="relative mx-auto w-[260px] sm:w-[300px] aspect-[490/990] [filter:drop-shadow(0_30px_60px_rgba(0,0,0,0.4))]"
       >
+        <!-- Screenshot fitted to the frame's transparent screen area -->
+        <img
+          src="/hero-screenshot.png"
+          alt="Bible Seek reader showing Psalms 23"
+          class="absolute left-[6.12%] top-[2.93%] w-[87.76%] h-[94.14%] rounded-[6%] object-cover bg-ink"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <!-- Fallback if the screenshot is missing — keeps the bezel intact -->
         <div
-          class="h-full w-full rounded-[36px] bg-cream-2 overflow-hidden flex items-center justify-center text-ink-muted text-xs"
+          class="hidden absolute left-[6.12%] top-[2.93%] w-[87.76%] h-[94.14%] rounded-[6%] bg-cream-2 items-center justify-center text-center text-ink-muted text-xs px-6 leading-relaxed"
         >
-          <!-- Drop a 1170x2532 (3x) screenshot at this path to replace
-               the placeholder. The <img> only renders if the file
-               exists at build time. -->
-          <img
-            src="/hero-screenshot.png"
-            alt="Bible Seek reader showing Psalms 23"
-            class="h-full w-full object-cover"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-          />
-          <div
-            class="hidden h-full w-full items-center justify-center text-center px-6 leading-relaxed"
+          Drop a screenshot at<br /><code
+            class="text-accent">/public/hero-screenshot.png</code
           >
-            Drop a screenshot at<br /><code
-              class="text-accent">/public/hero-screenshot.png</code
-            >
-          </div>
         </div>
-        <!-- Notch -->
-        <div
-          class="absolute top-2.5 left-1/2 -translate-x-1/2 h-6 w-28 rounded-b-2xl bg-ink"
+        <!-- iPhone bezel — side rails, buttons, Dynamic Island -->
+        <img
+          src="/iphone-frame.png"
+          alt=""
           aria-hidden="true"
-        >
-        </div>
+          class="absolute inset-0 h-full w-full pointer-events-none select-none"
+        />
       </div>
     </div>
   </div>
