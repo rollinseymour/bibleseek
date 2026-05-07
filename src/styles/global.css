@@ -6,7 +6,7 @@
  * Defined as Tailwind v4 theme tokens so they're available as utility
  * classes (`bg-cream`, `text-ink`, `bg-accent`, etc.).
  */
-@theme {
+@theme{
   --color-cream: #FAF7F0;
   --color-cream-2: #F4EFE4;
   --color-cream-3: #ECE4D2;
