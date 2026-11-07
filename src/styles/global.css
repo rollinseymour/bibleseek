@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The Flutter web app's source and Bible JSON would otherwise be scanned for class names. */
+@source not "../../app";
 
 /* ── Brand palette ────────────────────────────────────────────────────────
  * Mirrors the iOS app's "Parchment" reader theme so the website and app

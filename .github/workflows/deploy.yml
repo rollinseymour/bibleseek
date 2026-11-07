@@ -27,12 +27,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install, build, and upload your site
-        uses: withastro/action@v3
+
+      # The marketing site (Astro) → dist/
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           # Match the engines.node range in package.json (>=22.12.0).
-          # The action defaults to Node 20, which fails on this project.
           node-version: 22
+          cache: npm
+      - name: Install site dependencies
+        run: npm ci
+      - name: Build the site
+        run: npm run build
+
+      # The web reader (Flutter, in app/) → dist/read/
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.7
+          cache: true
+      - name: Build the web reader
+        working-directory: app
+        run: flutter build web --release --base-href /read/ --no-wasm-dry-run
+      - name: Add the reader to the site
+        run: cp -R app/build/web dist/read
+
+      - name: Upload the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build
