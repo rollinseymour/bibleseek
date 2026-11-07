@@ -12,7 +12,9 @@ import '../bible/bible_library.dart';
 import '../bible/bible_store.dart';
 import '../data/prefs.dart';
 import '../design/reader_palette.dart';
+import '../memory/memory_store.dart';
 import '../settings/settings_model.dart';
+import '../study/cross_references.dart';
 import '../web/browser.dart';
 import 'chapter_body.dart';
 import 'reader_header.dart';
@@ -191,6 +193,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     onReference: _pickChapter,
                     onGoToVerse: _goToVerse,
                     onSettings: () => showReaderSettings(context),
+                    onChapterRelated: () => showChapterRelated(
+                      context,
+                      book: model.bookCode,
+                      chapter: model.chapter,
+                      version: model.version,
+                      verses: [for (final v in model.verses) v.number],
+                    ),
                   ),
                 ),
               ),
@@ -373,7 +382,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
       bookmarked: bookmarked,
       onHighlight: _applyHighlight,
       onMoreColors: _moreColors,
+      onMemorize: _memorize,
       onCompare: _compare,
+      onRelated: () => showVerseRelated(
+        context,
+        book: model.bookCode,
+        chapter: model.chapter,
+        verse: model.selected.first,
+        version: model.version,
+      ),
       onFavorite: () => _toggleFavorite(favorite),
       onBookmark: () => _toggleBookmark(bookmarked),
       onNote: _editNote,
@@ -484,6 +501,27 @@ class _ReaderScreenState extends State<ReaderScreen> {
       currentVersion: model.version,
     );
     if (picked != null) model.switchVersion(picked);
+  }
+
+  void _memorize() {
+    final memory = context.read<MemoryVerseStore>();
+    for (final v in model.selected.toList()..sort()) {
+      final text = model.textOf(v);
+      if (text.isNotEmpty) {
+        memory.add(
+          version: model.version,
+          bookCode: model.bookCode,
+          chapter: model.chapter,
+          verse: v,
+          text: text,
+        );
+      }
+    }
+    final n = model.selected.length;
+    model.clearSelection();
+    _showToast(
+      n == 1 ? 'Added to Memory Verses' : 'Added $n verses to Memory Verses',
+    );
   }
 
   void _toggleFavorite(bool remove) {

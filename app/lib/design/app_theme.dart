@@ -84,6 +84,11 @@ ThemeData buildAppTheme(AppThemeKind kind) {
     onError: dark ? const Color(0xFF370B0B) : Colors.white,
     surface: p.surface,
     onSurface: p.onSurface,
+    // Without these, progress tracks and tonal buttons fall back to the accent itself.
+    primaryContainer: Color.lerp(p.surface, p.primary, 0.28),
+    onPrimaryContainer: p.onSurface,
+    secondaryContainer: Color.lerp(p.surface, p.primary, 0.2),
+    onSecondaryContainer: p.onSurface,
     surfaceContainerLowest: p.scaffold,
     surfaceContainerLow: Color.lerp(p.scaffold, p.surface, 0.5),
     surfaceContainer: p.surface,

@@ -15,6 +15,7 @@ class ReaderHeader extends StatelessWidget {
     required this.onReference,
     required this.onGoToVerse,
     required this.onSettings,
+    required this.onChapterRelated,
   });
 
   final ReaderModel model;
@@ -22,6 +23,7 @@ class ReaderHeader extends StatelessWidget {
   final VoidCallback onReference;
   final VoidCallback onGoToVerse;
   final VoidCallback onSettings;
+  final VoidCallback onChapterRelated;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +116,30 @@ class ReaderHeader extends StatelessWidget {
         _icon(Icons.search, 'Go to verse', onGoToVerse),
         const SizedBox(width: 8),
         _icon(Icons.text_fields, 'Fonts & settings', onSettings),
+        const SizedBox(width: 8),
+        PopupMenuButton<VoidCallback>(
+          tooltip: 'More',
+          onSelected: (action) => action(),
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: onChapterRelated,
+              child: const ListTile(
+                leading: Icon(Icons.link),
+                title: Text('Related in this chapter'),
+                dense: true,
+              ),
+            ),
+          ],
+          child: Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: palette.accent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.more_horiz, size: 18, color: palette.accent),
+          ),
+        ),
         const SizedBox(width: 8),
         _VersionPill(model: model, palette: palette),
       ],

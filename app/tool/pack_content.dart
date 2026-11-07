@@ -71,7 +71,20 @@ void main(List<String> args) {
     }
   }
   stdout.writeln('packed $files chapters from ${books.length} books');
+
+  // Study data, copied as-is but minified.
+  final data = Directory('web/content/data');
+  if (data.existsSync()) data.deleteSync(recursive: true);
+  for (final name in dataFiles) {
+    _write(
+      '${data.path}/$name',
+      jsonDecode(File('${args[0]}/$name').readAsStringSync()) as Object,
+    );
+  }
+  stdout.writeln('copied ${dataFiles.length} data files');
 }
+
+const dataFiles = ['topics_enriched.json', 'cross_refs.json'];
 
 Map<String, dynamic>? _read(String path) {
   final f = File(path);

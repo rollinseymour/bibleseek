@@ -61,13 +61,38 @@ class BibleStore {
     String book,
     int chapter,
     int verse,
-  ) async {
-    final verses = await this.chapter(version, book, chapter, redLetter: false);
+  ) async => (await this.verse(version, book, chapter, verse))?.plainText ?? '';
+
+  Future<Verse?> verse(
+    String version,
+    String book,
+    int chapter,
+    int verse, {
+    bool redLetter = false,
+  }) async {
+    final verses = await this.chapter(
+      version,
+      book,
+      chapter,
+      redLetter: redLetter,
+    );
     for (final v in verses) {
-      if (v.number == verse) return v.plainText;
+      if (v.number == verse) return v;
     }
-    return '';
+    return null;
   }
+
+  /// Small JSON files under content/data, fetched once.
+  final _data = <String, Future<Object?>>{};
+
+  Future<Object?> data(String name) => _data.putIfAbsent(name, () async {
+    try {
+      return await getJson('content/data/$name');
+    } catch (_) {
+      _data.remove(name);
+      rethrow;
+    }
+  });
 
   static Future<Object?> getJson(String path) async {
     final res = await http.get(contentUri(path));

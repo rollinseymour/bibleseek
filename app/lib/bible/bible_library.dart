@@ -60,6 +60,21 @@ class BibleLibrary {
     );
   }
 
+  /// Like [parseReference] but always a verse range (verse 1 when none is
+  /// named), for topic, cross-reference and compare cards.
+  ({BibleBook book, int chapter, int start, int end})? parseRange(String raw) {
+    final p = parse(raw);
+    if (p == null) return null;
+    final start = p.start ?? 1;
+    final end = p.end ?? start;
+    return (
+      book: p.book,
+      chapter: p.chapter,
+      start: start,
+      end: end < start ? start : end,
+    );
+  }
+
   ({BibleBook book, int chapter, int? start, int? end})? parse(String raw) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return null;

@@ -1,38 +1,58 @@
 import 'package:flutter/material.dart';
 
+import '../memory/memory_screen.dart';
+import '../study/compare_screen.dart';
+import '../study/cross_references.dart';
+import '../topics/topics_screen.dart';
 import '../widgets/page_header.dart';
+import '../widgets/section_label.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
 
-/// Study tools and app settings. Tools not yet on the web are listed as
-/// coming soon so the menu matches the iPhone app's.
+/// Study tools and app settings, in the iPhone app's order. Tools not yet on
+/// the web are listed as coming soon.
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
-  static const _comingSoon = [
-    ('Topics', Icons.layers_outlined),
-    ('Reading Plans', Icons.calendar_month_outlined),
-    ('Word Study', Icons.translate),
-    ('Memory Verses', Icons.psychology_outlined),
-    ('Channels', Icons.smart_display_outlined),
-    ('Cross-References', Icons.link),
+  static final _tools = <(String, IconData, WidgetBuilder?)>[
+    ('Topics', Icons.layers_outlined, (_) => const TopicsScreen()),
+    ('Reading Plans', Icons.calendar_month_outlined, null),
+    ('Word Study', Icons.translate, null),
+    (
+      'Memory Verses',
+      Icons.psychology_outlined,
+      (_) => const MemoryVersesScreen(),
+    ),
+    ('Channels', Icons.smart_display_outlined, null),
+    ('Compare', Icons.compare_arrows, (_) => const CompareScreen()),
+    ('Cross-References', Icons.link, (_) => const CrossReferencesScreen()),
+  ];
+
+  static final _app = <(String, IconData, WidgetBuilder?)>[
+    ('Settings', Icons.settings_outlined, (_) => const SettingsScreen()),
+    ('About', Icons.info_outline, (_) => const AboutScreen()),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    Widget section(String title) => Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: scheme.onSurface.withValues(alpha: 0.55),
-        ),
-      ),
-    );
+    Widget row((String, IconData, WidgetBuilder?) item) {
+      final (title, icon, builder) = item;
+      return ListTile(
+        enabled: builder != null,
+        leading: Icon(icon),
+        title: Text(title),
+        trailing: builder == null
+            ? const Text('Coming soon', style: TextStyle(fontSize: 12))
+            : const Icon(Icons.chevron_right),
+        onTap: builder == null
+            ? null
+            : () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: builder),
+              ),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -42,40 +62,10 @@ class MoreScreen extends StatelessWidget {
             child: ListView(
               children: [
                 const PageHeader('More'),
-                section('Study & tools'),
-                for (final (title, icon) in _comingSoon)
-                  ListTile(
-                    enabled: false,
-                    leading: Icon(icon),
-                    title: Text(title),
-                    trailing: const Text(
-                      'Coming soon',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                section('App'),
-                ListTile(
-                  leading: const Icon(Icons.settings_outlined),
-                  title: const Text('Settings'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SettingsScreen(),
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('About'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AboutScreen(),
-                    ),
-                  ),
-                ),
+                const SectionLabel('Study & tools'),
+                for (final t in _tools) row(t),
+                const SectionLabel('App'),
+                for (final t in _app) row(t),
               ],
             ),
           ),

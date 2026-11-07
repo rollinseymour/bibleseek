@@ -6,6 +6,7 @@ import '../data/prefs.dart';
 import '../design/app_theme.dart';
 import '../design/reader_fonts.dart';
 import '../design/reader_palette.dart';
+import '../memory/memory_store.dart';
 import '../settings/settings_model.dart';
 import '../web/browser.dart';
 import 'backup_service.dart';
@@ -250,6 +251,7 @@ class SettingsScreen extends StatelessWidget {
     final n = BackupService.restore(context.read<Prefs>(), keys);
     context.read<SettingsModel>().reload();
     context.read<AnnotationStore>().reload();
+    context.read<MemoryVerseStore>().reload();
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Restored $n items.')));

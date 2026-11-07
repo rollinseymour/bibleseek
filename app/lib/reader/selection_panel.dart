@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../annotations/highlight_palette.dart';
 import '../design/reader_palette.dart';
+import '../widgets/mouse_drag_scroll.dart';
 
 /// The floating annotation panel shown while verses are selected: three
 /// swipeable pages (Highlight / Study / Keep) whose indicator names the active
@@ -18,7 +19,9 @@ class SelectionPanel extends StatefulWidget {
     required this.bookmarked,
     required this.onHighlight,
     required this.onMoreColors,
+    required this.onMemorize,
     required this.onCompare,
+    required this.onRelated,
     required this.onFavorite,
     required this.onBookmark,
     required this.onNote,
@@ -33,7 +36,9 @@ class SelectionPanel extends StatefulWidget {
   final bool bookmarked;
   final ValueChanged<String?> onHighlight;
   final VoidCallback onMoreColors;
+  final VoidCallback onMemorize;
   final VoidCallback onCompare;
+  final VoidCallback onRelated;
   final VoidCallback onFavorite;
   final VoidCallback onBookmark;
   final VoidCallback onNote;
@@ -118,15 +123,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
                 ),
                 SizedBox(
                   height: 56,
-                  child: ScrollConfiguration(
-                    // Mouse drags page too, not just touch.
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      dragDevices: {
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.mouse,
-                        PointerDeviceKind.trackpad,
-                      },
-                    ),
+                  child: MouseDragScroll(
                     child: PageView(
                       controller: _controller,
                       onPageChanged: (i) => setState(() {
@@ -269,12 +266,14 @@ class _SelectionPanelState extends State<SelectionPanel> {
     padding: const EdgeInsets.symmetric(horizontal: 16),
     child: Row(
       children: [
+        _cell(Icons.psychology_outlined, 'Memorize', widget.onMemorize),
         _cell(
           Icons.compare_arrows,
           'Compare',
           widget.onCompare,
           enabled: widget.single,
         ),
+        _cell(Icons.link, 'Related', widget.onRelated, enabled: widget.single),
       ],
     ),
   );
