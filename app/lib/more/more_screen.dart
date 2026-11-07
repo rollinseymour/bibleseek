@@ -6,6 +6,7 @@ import '../study/compare_screen.dart';
 import '../study/cross_references.dart';
 import '../topics/topics_screen.dart';
 import '../videos/videos.dart';
+import '../web/install.dart';
 import '../widgets/page_header.dart';
 import '../wordstudy/word_study_screen.dart';
 import '../widgets/section_label.dart';
@@ -73,6 +74,12 @@ class MoreScreen extends StatelessWidget {
                 for (final t in _tools) row(t),
                 const SectionLabel('App'),
                 for (final t in _app) row(t),
+                if (!isInstalledApp)
+                  ListTile(
+                    leading: const Icon(Icons.install_mobile_outlined),
+                    title: const Text('Install app'),
+                    onTap: () => installApp(context),
+                  ),
               ],
             ),
           ),

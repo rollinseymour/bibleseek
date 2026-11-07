@@ -42,6 +42,14 @@
     <div class="bar"></div>
   </div>
   <script>
+    // Hold Chrome's install offer for More › Install app (lib/web/install.dart).
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      window.bibleSeekInstall = e;
+    });
+    window.addEventListener('appinstalled', function () {
+      window.bibleSeekInstall = null;
+    });
     window.addEventListener('flutter-first-frame', function () {
       var el = document.getElementById('loading');
       el.style.opacity = '0';
