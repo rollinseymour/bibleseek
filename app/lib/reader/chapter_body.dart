@@ -46,6 +46,7 @@ class ChapterBody extends StatefulWidget {
     this.flash = const {},
     this.interlinear,
     this.reverse,
+    this.spoken,
   });
 
   final ReaderModel model;
@@ -60,6 +61,9 @@ class ChapterBody extends StatefulWidget {
 
   /// KJV-order words, for the English-order interlinear.
   final Map<int, List<ReverseWord>>? reverse;
+
+  /// The verse being read aloud, and the word within it when the browser reports one.
+  final ({int verse, ({int start, int end})? word})? spoken;
 
   @override
   State<ChapterBody> createState() => _ChapterBodyState();
@@ -389,6 +393,11 @@ class _ChapterBodyState extends State<ChapterBody> {
     for (final pc in pilcrows) {
       cuts.addAll([pc.start, pc.end]);
     }
+    final reading = widget.spoken?.verse == v.number;
+    final word = reading ? widget.spoken!.word : null;
+    if (word != null) {
+      cuts.addAll([word.start.clamp(0, len), word.end.clamp(0, len)]);
+    }
     final sorted = cuts.toList()..sort();
 
     bool within(int i, int start, int end) => i >= start && i < end;
@@ -411,6 +420,9 @@ class _ChapterBodyState extends State<ChapterBody> {
       }
       if (wholeHex != null) bg = colorFromHex(wholeHex).withValues(alpha: 0.35);
       if (flash) bg = p.accent.withValues(alpha: 0.3);
+      if (reading && word == null) bg ??= p.accent.withValues(alpha: 0.12);
+      final spokenWord = word != null && within(a, word.start, word.end);
+      if (spokenWord) bg = const Color(0xFFFFE14D);
 
       final dotted =
           selected && !pilcrows.any((pc) => within(a, pc.start, pc.end));
@@ -422,7 +434,9 @@ class _ChapterBodyState extends State<ChapterBody> {
           recognizer: recognizer,
           mouseCursor: recognizer == null ? null : SystemMouseCursors.click,
           style: TextStyle(
-            color: part == null
+            color: spokenWord
+                ? const Color(0xFF1A1A1A)
+                : part == null
                 ? null
                 : part.isNote
                 ? noteColor

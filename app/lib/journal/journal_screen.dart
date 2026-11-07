@@ -6,7 +6,9 @@ import '../annotations/highlight_palette.dart';
 import '../app/app_model.dart';
 import '../bible/bible_library.dart';
 import '../bible/bible_store.dart';
+import '../web/browser.dart';
 import '../widgets/page_header.dart';
+import 'journal_pdf.dart';
 
 enum _Kind { highlight, note, bookmark, favorite }
 
@@ -78,6 +80,7 @@ class _JournalScreenState extends State<JournalScreen> {
   List<_Entry> _entries = const [];
   _Filter _filter = _Filter.all;
   int _token = 0;
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -294,6 +297,39 @@ class _JournalScreenState extends State<JournalScreen> {
     if (token == _token && mounted) setState(() => _entries = out);
   }
 
+  /// Downloads the journal as a PDF, grouped by book.
+  Future<void> _exportPdf() async {
+    setState(() => _exporting = true);
+    try {
+      final entries = <PdfEntry>[
+        for (final e in _entries)
+          for (final v
+              in e.kind == _Kind.highlight && e.highlightVerses.isNotEmpty
+                  ? e.highlightVerses
+                  : [e.verse])
+            PdfEntry(
+              kind: switch (e.kind) {
+                _Kind.highlight => PdfKind.highlight,
+                _Kind.note => PdfKind.note,
+                _Kind.bookmark => PdfKind.bookmark,
+                _Kind.favorite => PdfKind.favorite,
+              },
+              bookName: e.book.isEmpty ? 'Other' : library.name(e.book),
+              bookOrder: _order(e.book),
+              chapter: e.chapter,
+              verse: v,
+              reference: e.reference,
+              text: e.snippet,
+              colorHex: e.hex,
+            ),
+      ];
+      final bytes = await JournalPdf.generate('Bible Seek Journal', entries);
+      downloadBytes('BibleSeek-Journal.pdf', bytes, 'application/pdf');
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   void _delete(_Entry e) {
     final newestBefore = store.trash.isEmpty ? 0 : store.trash.first.deletedAt;
     switch (e.kind) {
@@ -342,7 +378,20 @@ class _JournalScreenState extends State<JournalScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const PageHeader('Journal'),
+              PageHeader(
+                'Journal',
+                trailing: IconButton.filledTonal(
+                  tooltip: 'Export as PDF',
+                  onPressed: _entries.isEmpty || _exporting ? null : _exportPdf,
+                  icon: _exporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.picture_as_pdf_outlined),
+                ),
+              ),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(

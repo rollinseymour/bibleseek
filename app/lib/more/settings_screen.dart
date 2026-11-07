@@ -8,6 +8,7 @@ import '../design/reader_fonts.dart';
 import '../design/reader_palette.dart';
 import '../memory/memory_store.dart';
 import '../plans/plans.dart';
+import '../reader/read_aloud.dart';
 import '../settings/settings_model.dart';
 import '../web/browser.dart';
 import 'backup_service.dart';
@@ -19,6 +20,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<SettingsModel>();
+    final audio = context.watch<ReadAloudService>();
     final scheme = Theme.of(context).colorScheme;
     Widget section(String title) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 6),
@@ -112,6 +114,77 @@ class SettingsScreen extends StatelessWidget {
                 value: s.showCrossVersionAnnotations,
                 onChanged: (v) => s.showCrossVersionAnnotations = v,
               ),
+              if (ReadAloudService.supported) ...[
+                section('Read Aloud'),
+                ListTile(
+                  title: const Text('Voice'),
+                  trailing: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value:
+                          audio.voices().any(
+                            (v) => v.voiceURI == audio.voiceUri,
+                          )
+                          ? audio.voiceUri
+                          : '',
+                      underline: const SizedBox.shrink(),
+                      items: [
+                        const DropdownMenuItem(
+                          value: '',
+                          child: Text('Automatic'),
+                        ),
+                        for (final v in audio.voices())
+                          DropdownMenuItem(
+                            value: v.voiceURI,
+                            child: Text(
+                              '${v.name} (${v.lang})',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) => audio.voiceUri = v ?? '',
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Speed'),
+                  trailing: DropdownButton<double>(
+                    value: audio.rate,
+                    underline: const SizedBox.shrink(),
+                    items: [
+                      for (final r in ReadAloudService.rates)
+                        DropdownMenuItem(
+                          value: r,
+                          child: Text(ReadAloudService.rateLabel(r)),
+                        ),
+                    ],
+                    onChanged: (r) => audio.setRate(r!),
+                  ),
+                ),
+                SwitchListTile(
+                  title: const Text('Follow along'),
+                  subtitle: const Text('Keeps the verse being read on screen.'),
+                  value: audio.follow,
+                  onChanged: (v) => audio.follow = v,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.play_circle_outline),
+                  title: const Text('Hear a sample'),
+                  onTap: audio.preview,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Text(
+                    'Read Aloud uses the voices built into this browser and device. The iPhone app’s recorded voices aren’t available on the web.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ],
               section('Data'),
               ListTile(
                 leading: const Icon(Icons.download_outlined),

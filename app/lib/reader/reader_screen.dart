@@ -14,11 +14,12 @@ import '../data/prefs.dart';
 import '../design/reader_palette.dart';
 import '../memory/memory_store.dart';
 import '../settings/settings_model.dart';
+import '../share/share_card.dart';
 import '../study/cross_references.dart';
-import '../web/browser.dart';
 import '../wordstudy/lexicon.dart';
 import '../wordstudy/word_study_screen.dart';
 import 'chapter_body.dart';
+import 'read_aloud.dart';
 import 'reader_header.dart';
 import 'reader_model.dart';
 import 'reader_sheets.dart';
@@ -40,6 +41,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final _anchors = VerseAnchors();
   Set<int> _flash = const {};
   String? _shownChapter;
+  bool _wasPicking = false;
+  late final ReadAloudService audio;
+  int? _followedVerse;
   final _scrollKey = GlobalKey();
   late final SettingsModel _settings;
   bool _interlinearOn = false;
@@ -63,6 +67,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       prefs: context.read<Prefs>(),
     )..addListener(_onModel);
     _settings = context.read<SettingsModel>()..addListener(_onSettings);
+    audio = context.read<ReadAloudService>()..addListener(_onAudio);
     app.addListener(_onApp);
     HardwareKeyboard.instance.addHandler(_onKey);
     _onApp();
@@ -73,6 +78,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     HardwareKeyboard.instance.removeHandler(_onKey);
     app.removeListener(_onApp);
     _settings.removeListener(_onSettings);
+    audio.removeListener(_onAudio);
     model
       ..removeListener(_onModel)
       ..dispose();
@@ -92,11 +98,44 @@ class _ReaderScreenState extends State<ReaderScreen> {
         version: t.version,
       );
     }
+    // "Add other verses" starts on the books page with a clean selection.
+    if (app.sharePicking && !_wasPicking) {
+      model.clearSelection();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && app.sharePicking) _pickChapter();
+      });
+    }
+    _wasPicking = app.sharePicking;
+    final resume = app.takeShareResume();
+    if (resume != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          showShareCard(context, resume.passages, style: resume.style);
+        }
+      });
+    }
+  }
+
+  Future<void> _finishPick({required bool confirmed}) async {
+    SharePassage? added;
+    if (confirmed && model.selected.isNotEmpty) {
+      final runs = await ShareRun.forPassage(
+        context.read<BibleStore>(),
+        model.version,
+        model.bookCode,
+        model.chapter,
+        model.selected.toList(),
+      );
+      added = SharePassage(model.selectedReference, runs);
+    }
+    model.clearSelection();
+    app.finishSharePick(added);
   }
 
   /// A new chapter lands at the top, unless a deep link asked for a verse.
   void _onModel() {
     if (model.loading || model.error != null) return;
+    audio.readerMoved(model);
     final chapter = '${model.bookCode}#${model.chapter}';
     final target = model.scrollTarget;
     if (chapter != _shownChapter) {
@@ -177,8 +216,36 @@ class _ReaderScreenState extends State<ReaderScreen> {
     });
   }
 
+  /// Follow-along: keeps the verse being read on screen.
+  void _onAudio() {
+    final v = audio.verse;
+    if (!audio.follow ||
+        !audio.isReading(model) ||
+        v == null ||
+        v == _followedVerse) {
+      return;
+    }
+    _followedVerse = v;
+    if (model.selected.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _reveal(v, onlyIfHidden: true),
+      );
+    }
+  }
+
   Future<void> _scrollTo(int start, int end) async {
+    await _reveal(start);
+    if (!mounted) return;
+    setState(() => _flash = {for (var v = start; v <= end; v++) v});
+    await Future<void>.delayed(const Duration(milliseconds: 1300));
+    if (mounted) setState(() => _flash = const {});
+  }
+
+  /// Scrolls [verse] to 30% down the reading area; with [onlyIfHidden], only
+  /// when its start isn't already comfortably on screen.
+  Future<void> _reveal(int verse, {bool onlyIfHidden = false}) async {
     const duration = Duration(milliseconds: 350);
+    final start = verse;
     final ctx = _anchors.contextFor(start);
     final box = ctx != null && ctx.mounted ? ctx.findRenderObject() : null;
     final textOffset = _anchors.textOffsetFor(start);
@@ -192,7 +259,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
         box,
       ).getOffsetToReveal(box, 0).offset;
       final p = _scroll.position;
-      final target = (sectionTop + caret.dy - p.viewportDimension * 0.3).clamp(
+      final lineTop = sectionTop + caret.dy;
+      if (onlyIfHidden &&
+          lineTop >= p.pixels &&
+          lineTop <= p.pixels + p.viewportDimension - 160) {
+        return;
+      }
+      final target = (lineTop - p.viewportDimension * 0.3).clamp(
         p.minScrollExtent,
         p.maxScrollExtent,
       );
@@ -202,6 +275,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
         curve: Curves.easeInOut,
       );
     } else if (ctx != null && ctx.mounted) {
+      if (onlyIfHidden && box is RenderBox && _scroll.hasClients) {
+        final top = RenderAbstractViewport.of(
+          box,
+        ).getOffsetToReveal(box, 0).offset;
+        final p = _scroll.position;
+        if (top >= p.pixels && top <= p.pixels + p.viewportDimension - 160) {
+          return;
+        }
+      }
       await Scrollable.ensureVisible(
         ctx,
         alignment: 0.3,
@@ -209,10 +291,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         curve: Curves.easeInOut,
       );
     }
-    if (!mounted) return;
-    setState(() => _flash = {for (var v = start; v <= end; v++) v});
-    await Future<void>.delayed(const Duration(milliseconds: 1300));
-    if (mounted) setState(() => _flash = const {});
   }
 
   void _showToast(String message) {
@@ -249,6 +327,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsModel>();
     context.watch<AnnotationStore>();
+    final picking = context.select<AppModel, bool>((a) => a.sharePicking);
+    context.watch<ReadAloudService>();
     final palette = settings.readerPalette;
     return ColoredBox(
       color: palette.background,
@@ -271,6 +351,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     onInterlinear: _toggleInterlinear,
                     interlinearReverse: settings.interlinearReverse,
                     onInterlinearOrder: (v) => settings.interlinearReverse = v,
+                    picking: picking,
+                    onCancelPick: () => _finishPick(confirmed: false),
+                    onConfirmPick: () => _finishPick(confirmed: true),
+                    onListen: ReadAloudService.supported
+                        ? () => audio.play(model)
+                        : null,
                     onChapterRelated: () => showChapterRelated(
                       context,
                       book: model.bookCode,
@@ -299,12 +385,30 @@ class _ReaderScreenState extends State<ReaderScreen> {
                             ).animate(a),
                             child: FadeTransition(opacity: a, child: child),
                           ),
-                          child: model.selected.isEmpty
-                              ? const SizedBox.shrink()
-                              : _panel(palette),
+                          child: model.selected.isNotEmpty && !picking
+                              ? _panel(palette)
+                              : !picking && audio.isReading(model)
+                              ? ReadAloudBar(
+                                  key: const ValueKey('audio'),
+                                  palette: palette,
+                                )
+                              : const SizedBox.shrink(),
                         ),
                       ),
                     ),
+                    if (ReadAloudService.supported &&
+                        !audio.isActive &&
+                        !picking &&
+                        model.selected.isEmpty &&
+                        model.verses.isNotEmpty)
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: ListenButton(
+                          palette: palette,
+                          onTap: () => audio.play(model),
+                        ),
+                      ),
                     if (_toast != null)
                       Positioned(
                         left: 0,
@@ -387,6 +491,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     anchors: _anchors,
                     flash: _flash,
                     interlinear: _interlinearOn ? _interlinear : null,
+                    spoken: audio.isReading(model) && audio.verse != null
+                        ? (verse: audio.verse!, word: audio.word)
+                        : null,
                     reverse: _interlinearOn && settings.interlinearReverse
                         ? _reverse
                         : null,
@@ -474,6 +581,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
         verse: model.selected.first,
         version: model.version,
       ),
+      onListen: ReadAloudService.supported
+          ? () {
+              final from = (model.selected.toList()..sort()).first;
+              model.clearSelection();
+              audio.play(model, from: from);
+            }
+          : null,
       onWords: () {
         final v = model.selected.first;
         showWordInVerse(
@@ -711,12 +825,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
-  /// The system share sheet where the browser has one; elsewhere, a copy.
-  Future<void> _share() async {
-    if (canShareNatively) {
-      await shareText(model.selectedText());
-    } else {
-      await _copy();
-    }
-  }
+  Future<void> _share() => shareVerses(
+    context,
+    reference: model.selectedReference,
+    version: model.version,
+    book: model.bookCode,
+    chapter: model.chapter,
+    verses: model.selected.toList(),
+  );
 }

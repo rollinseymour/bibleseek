@@ -16,6 +16,10 @@ class ReaderHeader extends StatelessWidget {
     required this.onGoToVerse,
     required this.onSettings,
     required this.onChapterRelated,
+    this.picking = false,
+    this.onListen,
+    this.onCancelPick,
+    this.onConfirmPick,
     required this.interlinearOn,
     required this.onInterlinear,
     required this.interlinearReverse,
@@ -28,6 +32,15 @@ class ReaderHeader extends StatelessWidget {
   final VoidCallback onGoToVerse;
   final VoidCallback onSettings;
   final VoidCallback onChapterRelated;
+
+  /// Share-card "Add other verses": Cancel, the reference pill, and Add (lit
+  /// once verses are selected).
+  final bool picking;
+
+  /// Null where the browser can't speak.
+  final VoidCallback? onListen;
+  final VoidCallback? onCancelPick;
+  final VoidCallback? onConfirmPick;
 
   /// Word-by-word Greek/Hebrew under each verse.
   final bool interlinearOn;
@@ -44,7 +57,61 @@ class ReaderHeader extends StatelessWidget {
       height: 54,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),
-        child: selecting ? _selectionLabel() : _chrome(context),
+        child: picking
+            ? _pickingChrome()
+            : selecting
+            ? _selectionLabel()
+            : _chrome(context),
+      ),
+    );
+  }
+
+  Widget _pickingChrome() {
+    final ready = model.selected.isNotEmpty;
+    Widget pill(String text, Color fg, Color bg, VoidCallback? onTap) =>
+        Material(
+          color: bg,
+          shape: const StadiumBorder(),
+          child: InkWell(
+            customBorder: const StadiumBorder(),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              child: Text(
+                text,
+                style: TextStyle(color: fg, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        );
+    return Padding(
+      key: const ValueKey('picking'),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          pill(
+            'Cancel',
+            palette.accent,
+            palette.accent.withValues(alpha: 0.12),
+            onCancelPick,
+          ),
+          const Spacer(),
+          pill(
+            ready ? model.selectedReference : model.reference,
+            palette.text,
+            palette.accent.withValues(alpha: 0.12),
+            onReference,
+          ),
+          const Spacer(),
+          pill(
+            'Add',
+            ready ? palette.accent : palette.text.withValues(alpha: 0.3),
+            ready
+                ? palette.accent.withValues(alpha: 0.15)
+                : palette.text.withValues(alpha: 0.08),
+            ready ? onConfirmPick : null,
+          ),
+        ],
       ),
     );
   }
@@ -158,6 +225,15 @@ class ReaderHeader extends StatelessWidget {
           tooltip: 'More',
           onSelected: (action) => action(),
           itemBuilder: (_) => [
+            if (onListen != null)
+              PopupMenuItem(
+                value: onListen,
+                child: const ListTile(
+                  leading: Icon(Icons.headphones),
+                  title: Text('Listen to this chapter'),
+                  dense: true,
+                ),
+              ),
             PopupMenuItem(
               value: onChapterRelated,
               child: const ListTile(

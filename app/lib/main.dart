@@ -12,6 +12,7 @@ import 'design/app_theme.dart';
 import 'home/verse_search.dart';
 import 'memory/memory_store.dart';
 import 'plans/plans.dart';
+import 'reader/read_aloud.dart';
 import 'settings/settings_model.dart';
 import 'wordstudy/lexicon.dart';
 
@@ -39,6 +40,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AnnotationStore(prefs)),
         ChangeNotifierProvider(create: (_) => MemoryVerseStore(prefs)),
         ChangeNotifierProvider(create: (_) => PlanStore(prefs)),
+        ChangeNotifierProvider(create: (_) => ReadAloudService(prefs)),
       ],
       child: const BibleSeekApp(),
     ),

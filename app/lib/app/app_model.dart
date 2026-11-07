@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../share/share_card.dart';
+
 enum AppTab { home, bible, journal, more }
 
 /// A request to open the reader at a place (from the Journal, search, Home…).
@@ -29,6 +31,9 @@ class AppModel extends ChangeNotifier {
   String? _pendingJournalFilter;
   int _homeReset = 0;
   int _moreReset = 0;
+  List<SharePassage>? _sharePick;
+  ShareCardStyle? _sharePickStyle;
+  ({List<SharePassage> passages, ShareCardStyle? style})? _shareResume;
 
   AppTab get tab => _tab;
   ReaderTarget? get pendingOpen => _pendingOpen;
@@ -70,5 +75,31 @@ class AppModel extends ChangeNotifier {
     final f = _pendingJournalFilter;
     _pendingJournalFilter = null;
     return f;
+  }
+
+  /// True while the reader is picking more verses for a share card.
+  bool get sharePicking => _sharePick != null;
+
+  /// Starts "Add other verses": remembers the card and sends the person to the reader.
+  void beginSharePick(List<SharePassage> passages, ShareCardStyle style) {
+    _sharePick = passages;
+    _sharePickStyle = style;
+    _tab = AppTab.bible;
+    notifyListeners();
+  }
+
+  /// Ends the pick, with the newly chosen passage or none, and asks the reader
+  /// to bring the card back.
+  void finishSharePick(SharePassage? added) {
+    _shareResume = (passages: [...?_sharePick, ?added], style: _sharePickStyle);
+    _sharePick = null;
+    _sharePickStyle = null;
+    notifyListeners();
+  }
+
+  ({List<SharePassage> passages, ShareCardStyle? style})? takeShareResume() {
+    final r = _shareResume;
+    _shareResume = null;
+    return r;
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
@@ -71,3 +72,44 @@ Future<bool> shareText(String text) async {
 
 /// Opens [url] in a new tab, without giving it a handle back to this page.
 void openExternal(String url) => web.window.open(url, '_blank', 'noopener');
+
+void downloadBytes(String filename, List<int> bytes, String type) {
+  final blob = web.Blob(
+    [Uint8List.fromList(bytes).toJS].toJS,
+    web.BlobPropertyBag(type: type),
+  );
+  final url = web.URL.createObjectURL(blob);
+  final a = web.HTMLAnchorElement()
+    ..href = url
+    ..download = filename;
+  web.document.body!.append(a);
+  a.click();
+  a.remove();
+  web.URL.revokeObjectURL(url);
+}
+
+web.File _file(String filename, List<int> bytes, String type) => web.File(
+  [Uint8List.fromList(bytes).toJS].toJS,
+  filename,
+  web.FilePropertyBag(type: type),
+);
+
+/// Whether the browser can hand a file to the system share sheet (phones, mostly).
+bool canShareFile(String filename, List<int> bytes, String type) {
+  final nav = web.window.navigator;
+  if (!(nav as JSObject).has('canShare')) return false;
+  return nav.canShare(
+    web.ShareData(files: [_file(filename, bytes, type)].toJS),
+  );
+}
+
+Future<bool> shareFile(String filename, List<int> bytes, String type) async {
+  try {
+    await web.window.navigator
+        .share(web.ShareData(files: [_file(filename, bytes, type)].toJS))
+        .toDart;
+    return true;
+  } catch (_) {
+    return false;
+  }
+}

@@ -8,7 +8,7 @@ import '../bible/bible_store.dart';
 import '../design/reader_fonts.dart';
 import '../reader/reader_model.dart';
 import '../settings/settings_model.dart';
-import '../web/browser.dart';
+import '../share/share_card.dart';
 import '../widgets/copy.dart';
 import '../widgets/mouse_drag_scroll.dart';
 import 'topics.dart';
@@ -785,11 +785,18 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
                   IconButton(
                     tooltip: 'Share',
                     icon: Icon(Icons.ios_share, size: 18, color: muted),
-                    onPressed: () => canShareNatively
-                        ? shareText('"${_plain(q)}"\n\n— ${q.reference}')
-                        : copyWithFeedback(
+                    onPressed: t == null || !q.hasVerses
+                        ? null
+                        : () => shareVerses(
                             context,
-                            '"${_plain(q)}"\n\n— ${q.reference}',
+                            reference: q.reference,
+                            version: _version,
+                            book: t.bookCode,
+                            chapter: t.chapter,
+                            verses: [
+                              for (final v in q.verses)
+                                if (v.number > 0) v.number,
+                            ],
                           ),
                   ),
                   const Spacer(),

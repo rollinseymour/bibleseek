@@ -16,6 +16,7 @@ import '../plans/plans.dart';
 import '../plans/plans_screen.dart';
 import '../reader/reader_model.dart';
 import '../settings/settings_model.dart';
+import '../share/share_card.dart';
 import '../study/compare_screen.dart';
 import '../study/cross_references.dart';
 import '../topics/topics.dart';
@@ -959,9 +960,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         foregroundColor: _gold,
                         visualDensity: VisualDensity.compact,
                       ),
-                      onPressed: () => canShareNatively
-                          ? shareText(share)
-                          : copyWithFeedback(context, share),
+                      onPressed: () {
+                        final r = context.read<BibleLibrary>().parseRange(
+                          v.ref,
+                        );
+                        if (r == null) {
+                          copyWithFeedback(context, share);
+                        } else {
+                          shareVerses(
+                            context,
+                            reference: v.ref,
+                            version: 'KJV',
+                            book: r.book.id,
+                            chapter: r.chapter,
+                            verses: [for (var n = r.start; n <= r.end; n++) n],
+                          );
+                        }
+                      },
                       child: const Text(
                         'Share',
                         style: TextStyle(fontWeight: FontWeight.w600),
