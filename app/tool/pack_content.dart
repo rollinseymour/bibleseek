@@ -105,6 +105,8 @@ const dataFiles = [
   'strongs_seed.json',
   'bible_names.json',
   'hitchcock_names.json',
+  'videos.json',
+  'channels.json',
 ];
 
 /// Source folder → published folder.

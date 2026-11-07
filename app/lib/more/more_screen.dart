@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../memory/memory_screen.dart';
+import '../plans/plans_screen.dart';
 import '../study/compare_screen.dart';
 import '../study/cross_references.dart';
 import '../topics/topics_screen.dart';
+import '../videos/videos.dart';
 import '../widgets/page_header.dart';
 import '../wordstudy/word_study_screen.dart';
 import '../widgets/section_label.dart';
@@ -17,14 +19,18 @@ class MoreScreen extends StatelessWidget {
 
   static final _tools = <(String, IconData, WidgetBuilder?)>[
     ('Topics', Icons.layers_outlined, (_) => const TopicsScreen()),
-    ('Reading Plans', Icons.calendar_month_outlined, null),
+    (
+      'Reading Plans',
+      Icons.calendar_month_outlined,
+      (_) => const ReadingPlansScreen(),
+    ),
     ('Word Study', Icons.translate, (_) => const WordStudyScreen()),
     (
       'Memory Verses',
       Icons.psychology_outlined,
       (_) => const MemoryVersesScreen(),
     ),
-    ('Channels', Icons.smart_display_outlined, null),
+    ('Channels', Icons.smart_display_outlined, (_) => const ChannelsScreen()),
     ('Compare', Icons.compare_arrows, (_) => const CompareScreen()),
     ('Cross-References', Icons.link, (_) => const CrossReferencesScreen()),
   ];

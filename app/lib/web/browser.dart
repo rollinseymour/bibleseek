@@ -68,3 +68,6 @@ Future<bool> shareText(String text) async {
     return false;
   }
 }
+
+/// Opens [url] in a new tab, without giving it a handle back to this page.
+void openExternal(String url) => web.window.open(url, '_blank', 'noopener');
