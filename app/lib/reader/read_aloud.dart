@@ -52,6 +52,9 @@ class ReadAloudService extends ChangeNotifier {
   Map<int, String> _text = const {};
   int _run = 0;
 
+  /// Set while the service itself turns the page, so the move doesn't stop it.
+  bool _turning = false;
+
   /// Kept so the browser can't garbage-collect it before `end` fires.
   // ignore: unused_field
   web.SpeechSynthesisUtterance? _current;
@@ -157,6 +160,7 @@ class ReadAloudService extends ChangeNotifier {
 
   void stop() {
     _run++;
+    _turning = false;
     if (supported) _synth.cancel();
     state = ReadState.idle;
     verse = null;
@@ -193,7 +197,7 @@ class ReadAloudService extends ChangeNotifier {
   /// The reader changed page: a translation switch on the same chapter carries
   /// on from the current verse; any other move ends the reading.
   void readerMoved(ReaderModel m) {
-    if (!isActive || _pageKey == _key(m) || m.loading) return;
+    if (!isActive || _turning || _pageKey == _key(m) || m.loading) return;
     final old = _pageKey!.split('|');
     if (old[1] != m.bookCode || old[2] != '${m.chapter}' || !_load(m)) {
       return stop();
@@ -295,10 +299,13 @@ class ReadAloudService extends ChangeNotifier {
     final m = _model;
     if (m == null || !m.canGoNext) return stop();
     final run = ++_run;
+    _turning = true;
     m.goNext();
     void listener() {
-      if (m.loading || run != _run) return;
+      if (m.loading) return;
       m.removeListener(listener);
+      if (run != _run) return;
+      _turning = false;
       if (!_load(m)) return stop();
       _start(_order.first, announce: true);
     }
