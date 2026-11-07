@@ -25,3 +25,8 @@ dart run tool/pack_content.dart /path/to/bibleseek/lib/assets
 
 `.github/workflows/deploy.yml` builds the Astro site, builds this app with
 `--base-href /read/`, copies it into `dist/read/`, and publishes both to GitHub Pages.
+
+## Linking to a passage
+
+`https://bibleseekapp.com/read/?ref=John+3:16` opens the reader at that verse;
+add `&version=BSB` (KJV, ASV, BSB or WEB) to pick the translation.

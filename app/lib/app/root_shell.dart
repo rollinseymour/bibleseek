@@ -5,7 +5,11 @@ import '../home/home_screen.dart';
 import '../journal/journal_screen.dart';
 import '../more/more_screen.dart';
 import '../reader/reader_screen.dart';
+import '../bible/bible_library.dart';
+import '../bible/bible_store.dart';
+import '../data/prefs.dart';
 import 'app_model.dart';
+import 'onboarding.dart';
 
 /// The tab shell: Home · Bible · Journal · More. A bottom bar on phones, a
 /// side rail on wide screens; every tab stays alive between visits.
@@ -21,7 +25,31 @@ class _RootShellState extends State<RootShell> {
   final _homeNav = GlobalKey<NavigatorState>();
   final _moreNav = GlobalKey<NavigatorState>();
   int _homeReset = 0;
+  late bool _onboarding = Onboarding.shouldShow(context.read<Prefs>());
   int _moreReset = 0;
+
+  /// Links like `/read/?ref=John+3:16&version=BSB` open straight to the passage.
+  @override
+  void initState() {
+    super.initState();
+    final params = Uri.base.queryParameters;
+    final ref = params['ref'];
+    if (ref == null) return;
+    final t = context.read<BibleLibrary>().parseReference(ref);
+    if (t == null) return;
+    final version = params['version']?.toUpperCase();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => context.read<AppModel>().open(
+        ReaderTarget(
+          bookCode: t.bookCode,
+          chapter: t.chapter,
+          verse: t.verse,
+          endVerse: t.endVerse,
+          version: BibleStore.versions.contains(version) ? version : null,
+        ),
+      ),
+    );
+  }
 
   static const _destinations = [
     (AppTab.home, 'Home', Icons.home_outlined, Icons.home),
@@ -33,6 +61,11 @@ class _RootShellState extends State<RootShell> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppModel>();
+    if (_onboarding) {
+      return OnboardingScreen(
+        onFinish: () => setState(() => _onboarding = false),
+      );
+    }
     if (app.homeReset != _homeReset) {
       _homeReset = app.homeReset;
       WidgetsBinding.instance.addPostFrameCallback(

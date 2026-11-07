@@ -11,6 +11,7 @@ import '../plans/plans.dart';
 import '../reader/read_aloud.dart';
 import '../settings/settings_model.dart';
 import '../web/browser.dart';
+import 'auto_backups.dart';
 import 'backup_service.dart';
 import 'recently_deleted_screen.dart';
 
@@ -200,6 +201,17 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.content_paste),
                 title: const Text('Paste a backup'),
                 onTap: () => _restoreFromPaste(context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: const Text('Automatic backups'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AutoBackupsScreen(),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.restore_from_trash_outlined),

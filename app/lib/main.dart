@@ -11,6 +11,7 @@ import 'data/prefs.dart';
 import 'design/app_theme.dart';
 import 'home/verse_search.dart';
 import 'memory/memory_store.dart';
+import 'more/auto_backups.dart';
 import 'plans/plans.dart';
 import 'reader/read_aloud.dart';
 import 'settings/settings_model.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = Prefs(await SharedPreferences.getInstance());
   final store = BibleStore();
+  AutoBackups.schedule(prefs);
   final BibleLibrary library;
   try {
     library = await BibleLibrary.load();
