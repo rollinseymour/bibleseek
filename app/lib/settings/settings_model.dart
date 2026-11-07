@@ -34,6 +34,7 @@ class SettingsModel extends ChangeNotifier {
   static const _kCrossVersion = 'pref_show_cross_version_annotations';
   static const _kReaderFont = 'pref_reader_font_family';
   static const _kReaderTheme = 'pref_reader_theme';
+  static const _kInterlinearReverse = 'pref_interlinear_reverse';
 
   late double _fontSize;
   late AppThemeKind _theme;
@@ -42,6 +43,7 @@ class SettingsModel extends ChangeNotifier {
   late bool _showCrossVersionAnnotations;
   late String _readerFont;
   late String _readerTheme;
+  late bool _interlinearReverse;
 
   double get fontSize => _fontSize;
   AppThemeKind get theme => _theme;
@@ -50,6 +52,9 @@ class SettingsModel extends ChangeNotifier {
   bool get showCrossVersionAnnotations => _showCrossVersionAnnotations;
   String get readerFont => _readerFont;
   String get readerTheme => _readerTheme;
+
+  /// Interlinear word order: false = original (Greek/Hebrew), true = KJV.
+  bool get interlinearReverse => _interlinearReverse;
 
   ReaderPalette get readerPalette =>
       ReaderPalette.resolve(_readerTheme, _theme);
@@ -69,6 +74,7 @@ class SettingsModel extends ChangeNotifier {
     _readerTheme = readerThemeOptions.contains(readerTheme)
         ? readerTheme!
         : 'system';
+    _interlinearReverse = _prefs.getBool(_kInterlinearReverse, false);
     notifyListeners();
   }
 
@@ -111,6 +117,12 @@ class SettingsModel extends ChangeNotifier {
   set readerTheme(String v) {
     _readerTheme = v;
     _prefs.setString(_kReaderTheme, v);
+    notifyListeners();
+  }
+
+  set interlinearReverse(bool v) {
+    _interlinearReverse = v;
+    _prefs.setBool(_kInterlinearReverse, v);
     notifyListeners();
   }
 }

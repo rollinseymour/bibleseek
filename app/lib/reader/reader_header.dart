@@ -16,6 +16,10 @@ class ReaderHeader extends StatelessWidget {
     required this.onGoToVerse,
     required this.onSettings,
     required this.onChapterRelated,
+    required this.interlinearOn,
+    required this.onInterlinear,
+    required this.interlinearReverse,
+    required this.onInterlinearOrder,
   });
 
   final ReaderModel model;
@@ -24,6 +28,14 @@ class ReaderHeader extends StatelessWidget {
   final VoidCallback onGoToVerse;
   final VoidCallback onSettings;
   final VoidCallback onChapterRelated;
+
+  /// Word-by-word Greek/Hebrew under each verse.
+  final bool interlinearOn;
+  final VoidCallback onInterlinear;
+
+  /// Interlinear in English (KJV) word order instead of the original's.
+  final bool interlinearReverse;
+  final ValueChanged<bool> onInterlinearOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +129,31 @@ class ReaderHeader extends StatelessWidget {
         const SizedBox(width: 8),
         _icon(Icons.text_fields, 'Fonts & settings', onSettings),
         const SizedBox(width: 8),
+        Tooltip(
+          message: interlinearOn
+              ? 'Hide interlinear'
+              : 'Show interlinear (Greek & Hebrew)',
+          child: Material(
+            color: interlinearOn
+                ? palette.accent
+                : palette.accent.withValues(alpha: 0.1),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onInterlinear,
+              child: SizedBox(
+                width: 34,
+                height: 34,
+                child: Icon(
+                  Icons.translate,
+                  size: 18,
+                  color: interlinearOn ? palette.background : palette.accent,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
         PopupMenuButton<VoidCallback>(
           tooltip: 'More',
           onSelected: (action) => action(),
@@ -129,6 +166,19 @@ class ReaderHeader extends StatelessWidget {
                 dense: true,
               ),
             ),
+            if (interlinearOn) ...[
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem(
+                value: () => onInterlinearOrder(false),
+                checked: !interlinearReverse,
+                child: const Text('Original (Greek / Hebrew) order'),
+              ),
+              CheckedPopupMenuItem(
+                value: () => onInterlinearOrder(true),
+                checked: interlinearReverse,
+                child: const Text('English (KJV) order'),
+              ),
+            ],
           ],
           child: Container(
             width: 34,

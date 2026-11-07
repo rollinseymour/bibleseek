@@ -5,6 +5,7 @@ import '../study/compare_screen.dart';
 import '../study/cross_references.dart';
 import '../topics/topics_screen.dart';
 import '../widgets/page_header.dart';
+import '../wordstudy/word_study_screen.dart';
 import '../widgets/section_label.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
@@ -17,7 +18,7 @@ class MoreScreen extends StatelessWidget {
   static final _tools = <(String, IconData, WidgetBuilder?)>[
     ('Topics', Icons.layers_outlined, (_) => const TopicsScreen()),
     ('Reading Plans', Icons.calendar_month_outlined, null),
-    ('Word Study', Icons.translate, null),
+    ('Word Study', Icons.translate, (_) => const WordStudyScreen()),
     (
       'Memory Verses',
       Icons.psychology_outlined,

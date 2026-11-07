@@ -16,6 +16,8 @@ import '../memory/memory_store.dart';
 import '../settings/settings_model.dart';
 import '../study/cross_references.dart';
 import '../web/browser.dart';
+import '../wordstudy/lexicon.dart';
+import '../wordstudy/word_study_screen.dart';
 import 'chapter_body.dart';
 import 'reader_header.dart';
 import 'reader_model.dart';
@@ -38,6 +40,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final _anchors = VerseAnchors();
   Set<int> _flash = const {};
   String? _shownChapter;
+  final _scrollKey = GlobalKey();
+  late final SettingsModel _settings;
+  bool _interlinearOn = false;
+  bool? _loadedReverse;
+  InterlinearChapter? _interlinear;
+  Map<int, List<ReverseWord>>? _reverse;
+  int _interlinearToken = 0;
   String? _toast;
   Timer? _toastTimer;
 
@@ -53,6 +62,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       settings: context.read<SettingsModel>(),
       prefs: context.read<Prefs>(),
     )..addListener(_onModel);
+    _settings = context.read<SettingsModel>()..addListener(_onSettings);
     app.addListener(_onApp);
     HardwareKeyboard.instance.addHandler(_onKey);
     _onApp();
@@ -62,6 +72,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_onKey);
     app.removeListener(_onApp);
+    _settings.removeListener(_onSettings);
     model
       ..removeListener(_onModel)
       ..dispose();
@@ -92,6 +103,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       _shownChapter = chapter;
       _anchors.clear();
       if (target == null && _scroll.hasClients) _scroll.jumpTo(0);
+      if (_interlinearOn) _loadInterlinear();
     }
     if (target != null) {
       final end = max(model.scrollTargetEnd ?? target, target);
@@ -101,6 +113,68 @@ class _ReaderScreenState extends State<ReaderScreen> {
         (_) => _scrollTo(target, end),
       );
     }
+  }
+
+  void _onSettings() {
+    if (_interlinearOn && _settings.interlinearReverse != _loadedReverse) {
+      _loadInterlinear();
+    }
+  }
+
+  /// Fetches the chapter's interlinear (and, for English order, its KJV
+  /// tagging); the reader shows plain verses until it arrives.
+  Future<void> _loadInterlinear() async {
+    final token = ++_interlinearToken;
+    if (!_interlinearOn) {
+      setState(() {
+        _interlinear = null;
+        _reverse = null;
+      });
+      return;
+    }
+    final data = context.read<WordStudyData>();
+    final reverseOrder = _settings.interlinearReverse;
+    final il = await data.interlinear(model.bookCode, model.chapter);
+    final rev = reverseOrder
+        ? await data.reverse(model.bookCode, model.chapter)
+        : null;
+    if (!mounted || token != _interlinearToken) return;
+    setState(() {
+      _interlinear = il;
+      _reverse = rev;
+      _loadedReverse = reverseOrder;
+    });
+  }
+
+  /// The verse at the top of the reading area.
+  int? _topVerse() {
+    final viewport = _scrollKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox) return null;
+    final top = viewport.localToGlobal(Offset.zero).dy + 8;
+    int? best;
+    for (final v in model.verses) {
+      final box = _anchors.contextFor(v.number)?.findRenderObject();
+      if (box is! RenderBox || !box.attached) continue;
+      if (box.localToGlobal(Offset.zero).dy <= top) {
+        best = v.number;
+      } else {
+        break;
+      }
+    }
+    return best ?? model.verses.firstOrNull?.number;
+  }
+
+  /// Interlinear cards change every row's height; keep the verse being read in place.
+  Future<void> _toggleInterlinear() async {
+    final anchor = _topVerse();
+    _interlinearOn = !_interlinearOn;
+    model.clearSelection();
+    await _loadInterlinear();
+    if (anchor == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _anchors.contextFor(anchor);
+      if (ctx != null && ctx.mounted) Scrollable.ensureVisible(ctx);
+    });
   }
 
   Future<void> _scrollTo(int start, int end) async {
@@ -193,6 +267,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     onReference: _pickChapter,
                     onGoToVerse: _goToVerse,
                     onSettings: () => showReaderSettings(context),
+                    interlinearOn: _interlinearOn,
+                    onInterlinear: _toggleInterlinear,
+                    interlinearReverse: settings.interlinearReverse,
+                    onInterlinearOrder: (v) => settings.interlinearReverse = v,
                     onChapterRelated: () => showChapterRelated(
                       context,
                       book: model.bookCode,
@@ -287,6 +365,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       return Center(child: CircularProgressIndicator(color: palette.accent));
     }
     return Scrollbar(
+      key: _scrollKey,
       controller: _scroll,
       child: SingleChildScrollView(
         controller: _scroll,
@@ -307,6 +386,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     store: store,
                     anchors: _anchors,
                     flash: _flash,
+                    interlinear: _interlinearOn ? _interlinear : null,
+                    reverse: _interlinearOn && settings.interlinearReverse
+                        ? _reverse
+                        : null,
                   ),
                   const SizedBox(height: 28),
                   _chapterNav(palette),
@@ -391,6 +474,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
         verse: model.selected.first,
         version: model.version,
       ),
+      onWords: () {
+        final v = model.selected.first;
+        showWordInVerse(
+          context,
+          reference: '${model.bookName} ${model.chapter}:$v',
+          verseText: model.textOf(v),
+          book: model.bookCode,
+          chapter: model.chapter,
+          verse: v,
+          version: model.version,
+        );
+      },
       onFavorite: () => _toggleFavorite(favorite),
       onBookmark: () => _toggleBookmark(bookmarked),
       onNote: _editNote,

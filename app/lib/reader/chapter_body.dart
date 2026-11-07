@@ -7,6 +7,8 @@ import '../bible/models.dart';
 import '../design/reader_fonts.dart';
 import '../design/reader_palette.dart';
 import '../settings/settings_model.dart';
+import '../wordstudy/lexicon.dart';
+import 'interlinear_words.dart';
 import 'reader_model.dart';
 
 /// Scroll anchors for the rendered verses: a row per verse in verse mode, a
@@ -42,6 +44,8 @@ class ChapterBody extends StatefulWidget {
     required this.store,
     required this.anchors,
     this.flash = const {},
+    this.interlinear,
+    this.reverse,
   });
 
   final ReaderModel model;
@@ -50,6 +54,12 @@ class ChapterBody extends StatefulWidget {
   final AnnotationStore store;
   final VerseAnchors anchors;
   final Set<int> flash;
+
+  /// When set, each verse shows its original-language words beneath it.
+  final InterlinearChapter? interlinear;
+
+  /// KJV-order words, for the English-order interlinear.
+  final Map<int, List<ReverseWord>>? reverse;
 
   @override
   State<ChapterBody> createState() => _ChapterBodyState();
@@ -95,11 +105,13 @@ class _ChapterBodyState extends State<ChapterBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (_paragraphMode != s.paragraphMode) {
-      _paragraphMode = s.paragraphMode;
+    // Interlinear needs a row per verse, so it overrides paragraph mode.
+    final paragraphs = s.paragraphMode && widget.interlinear == null;
+    if (_paragraphMode != paragraphs) {
+      _paragraphMode = paragraphs;
       widget.anchors.clear();
     }
-    return s.paragraphMode ? _paragraphs() : _verseRows();
+    return paragraphs ? _paragraphs() : _verseRows();
   }
 
   // MARK: verse mode
@@ -166,6 +178,11 @@ class _ChapterBodyState extends State<ChapterBody> {
             ),
           ),
         ),
+        if (widget.interlinear case final il?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 3, 8, 0),
+            child: _interlinearWords(il, v.number),
+          ),
         if (sibling != null)
           Padding(
             padding: const EdgeInsets.only(left: 4),
@@ -186,6 +203,25 @@ class _ChapterBodyState extends State<ChapterBody> {
         const SizedBox(height: 6),
       ],
     );
+  }
+
+  Widget _interlinearWords(InterlinearChapter il, int verse) {
+    final words = il.verses[verse] ?? const <InterlinearWord>[];
+    if (words.isEmpty) {
+      return Text(
+        'No interlinear data for this verse.',
+        style: TextStyle(fontSize: 11, color: p.text.withValues(alpha: 0.4)),
+      );
+    }
+    if (widget.reverse case final rev?) {
+      return ReverseWords(
+        words: rev[verse] ?? const [],
+        originals: words,
+        palette: p,
+        fontSize: s.fontSize,
+      );
+    }
+    return InterlinearWords(words: words, palette: p, fontSize: s.fontSize);
   }
 
   // MARK: paragraph mode

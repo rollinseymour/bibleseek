@@ -22,6 +22,7 @@ class SelectionPanel extends StatefulWidget {
     required this.onMemorize,
     required this.onCompare,
     required this.onRelated,
+    required this.onWords,
     required this.onFavorite,
     required this.onBookmark,
     required this.onNote,
@@ -39,6 +40,7 @@ class SelectionPanel extends StatefulWidget {
   final VoidCallback onMemorize;
   final VoidCallback onCompare;
   final VoidCallback onRelated;
+  final VoidCallback onWords;
   final VoidCallback onFavorite;
   final VoidCallback onBookmark;
   final VoidCallback onNote;
@@ -274,6 +276,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
           enabled: widget.single,
         ),
         _cell(Icons.link, 'Related', widget.onRelated, enabled: widget.single),
+        _cell(Icons.translate, 'Words', widget.onWords, enabled: widget.single),
       ],
     ),
   );

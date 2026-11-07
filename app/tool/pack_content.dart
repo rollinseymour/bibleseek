@@ -82,9 +82,37 @@ void main(List<String> args) {
     );
   }
   stdout.writeln('copied ${dataFiles.length} data files');
+
+  // Folders of per-chapter or per-shard JSON, same layout, minified.
+  for (final entry in dataFolders.entries) {
+    final dest = Directory('web/content/${entry.value}');
+    if (dest.existsSync()) dest.deleteSync(recursive: true);
+    var n = 0;
+    final src = Directory('${args[0]}/${entry.key}');
+    for (final f in src.listSync(recursive: true).whereType<File>()) {
+      if (!f.path.endsWith('.json')) continue;
+      final rel = f.path.substring(src.path.length + 1);
+      _write('${dest.path}/$rel', jsonDecode(f.readAsStringSync()) as Object);
+      n++;
+    }
+    stdout.writeln('copied $n files from ${entry.key}');
+  }
 }
 
-const dataFiles = ['topics_enriched.json', 'cross_refs.json'];
+const dataFiles = [
+  'topics_enriched.json',
+  'cross_refs.json',
+  'strongs_seed.json',
+  'bible_names.json',
+  'hitchcock_names.json',
+];
+
+/// Source folder → published folder.
+const dataFolders = {
+  'Lexicon': 'lexicon',
+  'Interlinear': 'interlinear',
+  'Reverse': 'reverse',
+};
 
 Map<String, dynamic>? _read(String path) {
   final f = File(path);

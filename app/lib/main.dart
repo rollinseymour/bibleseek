@@ -11,10 +11,12 @@ import 'data/prefs.dart';
 import 'design/app_theme.dart';
 import 'memory/memory_store.dart';
 import 'settings/settings_model.dart';
+import 'wordstudy/lexicon.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = Prefs(await SharedPreferences.getInstance());
+  final store = BibleStore();
   final BibleLibrary library;
   try {
     library = await BibleLibrary.load();
@@ -27,7 +29,8 @@ Future<void> main() async {
       providers: [
         Provider.value(value: prefs),
         Provider.value(value: library),
-        Provider(create: (_) => BibleStore()),
+        Provider.value(value: store),
+        Provider(create: (_) => WordStudyData(store)),
         ChangeNotifierProvider(create: (_) => AppModel()),
         ChangeNotifierProvider(create: (_) => SettingsModel(prefs)),
         ChangeNotifierProvider(create: (_) => AnnotationStore(prefs)),
