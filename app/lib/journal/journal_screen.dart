@@ -85,14 +85,27 @@ class _JournalScreenState extends State<JournalScreen> {
     store = context.read<AnnotationStore>()..addListener(_rebuild);
     library = context.read<BibleLibrary>();
     bible = context.read<BibleStore>();
-    app = context.read<AppModel>();
+    app = context.read<AppModel>()..addListener(_onApp);
+    _filter = _filterFor(app.takePendingJournalFilter()) ?? _filter;
     _rebuild();
   }
 
   @override
   void dispose() {
     store.removeListener(_rebuild);
+    app.removeListener(_onApp);
     super.dispose();
+  }
+
+  static _Filter? _filterFor(String? name) => name == null
+      ? null
+      : _Filter.values
+            .where((f) => f.label.toLowerCase() == name.toLowerCase())
+            .firstOrNull;
+
+  void _onApp() {
+    final f = _filterFor(app.takePendingJournalFilter());
+    if (f != null) setState(() => _filter = f);
   }
 
   /// Strips pilcrows from stored text; older bookmarks saved the raw reader text.

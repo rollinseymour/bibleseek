@@ -44,7 +44,8 @@ void main(List<String> args) {
   ]);
 
   var files = 0;
-  for (final b in books) {
+  final search = <String, List<List<Object>>>{};
+  for (final (bookIndex, b) in books.indexed) {
     final code = b['id'] as String;
     for (var ch = 1; ch <= (b['numberOfChapters'] as int); ch++) {
       final headings = _headings(_read('$bible/bsbJSON/$code/$ch.json'));
@@ -67,10 +68,28 @@ void main(List<String> args) {
         _applyHeadings(verses, headings);
         _write('${out.path}/${entry.key}/$code/$ch.json', {'v': verses});
         files++;
+        if (searchFolders.contains(entry.key)) {
+          final rows = search.putIfAbsent(entry.key, () => []);
+          for (final v in verses) {
+            final text = _plain((v['p'] as List).cast<Object>());
+            if (text.isNotEmpty) rows.add([bookIndex, ch, v['n']!, text]);
+          }
+        }
       }
     }
   }
   stdout.writeln('packed $files chapters from ${books.length} books');
+
+  // One file per translation for keyword search: {"b": [codes], "v": [[book, ch, v, text]]}.
+  final searchDir = Directory('web/content/search');
+  if (searchDir.existsSync()) searchDir.deleteSync(recursive: true);
+  for (final e in search.entries) {
+    _write('${searchDir.path}/${e.key}.json', {
+      'b': [for (final b in books) b['id']],
+      'v': e.value,
+    });
+  }
+  stdout.writeln('wrote ${search.length} search files');
 
   // Study data, copied as-is but minified.
   final data = Directory('web/content/data');
@@ -98,6 +117,9 @@ void main(List<String> args) {
     stdout.writeln('copied $n files from ${entry.key}');
   }
 }
+
+/// Translations with a keyword-search file (the ASV red-letter edition has the same text).
+const searchFolders = {'kjv', 'asv', 'bsb', 'web'};
 
 const dataFiles = [
   'topics_enriched.json',

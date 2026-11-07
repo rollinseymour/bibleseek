@@ -9,6 +9,7 @@ import 'bible/bible_library.dart';
 import 'bible/bible_store.dart';
 import 'data/prefs.dart';
 import 'design/app_theme.dart';
+import 'home/verse_search.dart';
 import 'memory/memory_store.dart';
 import 'plans/plans.dart';
 import 'settings/settings_model.dart';
@@ -32,6 +33,7 @@ Future<void> main() async {
         Provider.value(value: library),
         Provider.value(value: store),
         Provider(create: (_) => WordStudyData(store)),
+        Provider(create: (_) => VerseSearch(library)),
         ChangeNotifierProvider(create: (_) => AppModel()),
         ChangeNotifierProvider(create: (_) => SettingsModel(prefs)),
         ChangeNotifierProvider(create: (_) => AnnotationStore(prefs)),

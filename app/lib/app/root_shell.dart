@@ -18,7 +18,9 @@ class RootShell extends StatefulWidget {
 
 class _RootShellState extends State<RootShell> {
   final _tabsKey = GlobalKey();
+  final _homeNav = GlobalKey<NavigatorState>();
   final _moreNav = GlobalKey<NavigatorState>();
+  int _homeReset = 0;
   int _moreReset = 0;
 
   static const _destinations = [
@@ -31,6 +33,12 @@ class _RootShellState extends State<RootShell> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppModel>();
+    if (app.homeReset != _homeReset) {
+      _homeReset = app.homeReset;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _homeNav.currentState?.popUntil((r) => r.isFirst),
+      );
+    }
     if (app.moreReset != _moreReset) {
       _moreReset = app.moreReset;
       WidgetsBinding.instance.addPostFrameCallback(
@@ -41,7 +49,11 @@ class _RootShellState extends State<RootShell> {
       key: _tabsKey,
       index: app.tab.index,
       children: [
-        const HomeScreen(),
+        Navigator(
+          key: _homeNav,
+          onGenerateRoute: (_) =>
+              MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+        ),
         const ReaderScreen(),
         const JournalScreen(),
         Navigator(

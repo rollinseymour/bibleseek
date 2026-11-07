@@ -402,6 +402,47 @@ class AnnotationStore extends ChangeNotifier {
         ),
   ];
 
+  /// Notes with their creation time (epoch ms), phrase notes included, for
+  /// the "a year ago" card.
+  List<
+    ({
+      String version,
+      String book,
+      int chapter,
+      int verse,
+      String text,
+      int createdAt,
+    })
+  >
+  datedNotes() => [
+    for (final k in _keys())
+      if (_entries[key(k.version, k.book, k.chapter, k.verse)]
+          case final e?) ...[
+        if (e['note'] case final String note when note.isNotEmpty)
+          if (_int(e['noteCreatedAt']) case final ms?)
+            (
+              version: k.version,
+              book: k.book,
+              chapter: k.chapter,
+              verse: k.verse,
+              text: note,
+              createdAt: ms,
+            ),
+        if (e['notes'] case final List notes)
+          for (final n in notes.whereType<Map>())
+            if (n['text'] case final String text)
+              if (_int(n['createdAt']) case final ms?)
+                (
+                  version: k.version,
+                  book: k.book,
+                  chapter: k.chapter,
+                  verse: k.verse,
+                  text: text,
+                  createdAt: ms,
+                ),
+      ],
+  ];
+
   void _put(String k, Map<String, Object?> e) {
     if (e.isEmpty) {
       _entries.remove(k);
