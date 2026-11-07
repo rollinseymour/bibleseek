@@ -26,6 +26,14 @@ dart run tool/pack_content.dart /path/to/bibleseek/lib/assets
 `.github/workflows/deploy.yml` builds the Astro site, builds this app with
 `--base-href /read/`, copies it into `dist/read/`, and publishes both to GitHub Pages.
 
+## Offline
+
+`web/sw.js` caches the app and everything it fetches, preferring the network
+while online, so a visited reader opens without a connection. Settings › Offline
+reading saves whole translations into the same cache (`lib/web/offline.dart`).
+`web/flutter_bootstrap.js` replaces Flutter's default so its deprecated service
+worker, which unregisters itself, doesn't take sw.js down with it.
+
 ## Linking to a passage
 
 `https://bibleseekapp.com/read/?ref=John+3:16` opens the reader at that verse;

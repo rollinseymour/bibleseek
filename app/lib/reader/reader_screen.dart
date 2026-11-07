@@ -16,6 +16,8 @@ import '../memory/memory_store.dart';
 import '../settings/settings_model.dart';
 import '../share/share_card.dart';
 import '../study/cross_references.dart';
+import '../web/browser.dart';
+import '../web/offline.dart';
 import '../wordstudy/lexicon.dart';
 import '../wordstudy/word_study_screen.dart';
 import 'chapter_body.dart';
@@ -455,6 +457,23 @@ class _ReaderScreenState extends State<ReaderScreen> {
             Text(
               'Couldn’t load ${model.reference}.',
               style: TextStyle(color: palette.text),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+              child: Text(
+                [
+                  isOnline
+                      ? 'Check your connection and try again.'
+                      : 'You’re offline, and this chapter isn’t saved on this device.',
+                  if (OfflineBibles.supported)
+                    'To read without a connection, save a Bible in More › Settings › Offline reading.',
+                ].join(' '),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: palette.text.withValues(alpha: 0.65),
+                  height: 1.4,
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             OutlinedButton(

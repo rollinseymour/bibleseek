@@ -72,6 +72,18 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(body, style: text.bodyMedium?.copyWith(height: 1.5)),
               ],
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton(
+                  onPressed: () => showLicensePage(
+                    context: context,
+                    applicationName: 'Bible Seek',
+                    applicationVersion: 'Web edition',
+                  ),
+                  child: const Text('Open-source licenses'),
+                ),
+              ),
             ],
           ),
         ),

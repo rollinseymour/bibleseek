@@ -142,6 +142,8 @@ class ReaderModel extends ChangeNotifier {
       }
     } catch (e) {
       if (token != _loadToken) return;
+      // Don't leave the last chapter's text under the new title.
+      verses = const [];
       error = e;
       loading = false;
       notifyListeners();

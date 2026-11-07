@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../annotations/annotation_store.dart';
+import '../bible/bible_store.dart';
 import '../data/prefs.dart';
 import '../design/app_theme.dart';
 import '../design/reader_fonts.dart';
@@ -11,6 +12,7 @@ import '../plans/plans.dart';
 import '../reader/read_aloud.dart';
 import '../settings/settings_model.dart';
 import '../web/browser.dart';
+import '../web/offline.dart';
 import 'auto_backups.dart';
 import 'backup_service.dart';
 import 'recently_deleted_screen.dart';
@@ -186,6 +188,10 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ],
+              if (OfflineBibles.supported) ...[
+                section('Offline reading'),
+                const _OfflineSection(),
+              ],
               section('Data'),
               ListTile(
                 leading: const Icon(Icons.download_outlined),
@@ -342,5 +348,76 @@ class SettingsScreen extends StatelessWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Restored $n items.')));
+  }
+}
+
+/// Save or remove each translation for reading without a connection.
+class _OfflineSection extends StatelessWidget {
+  const _OfflineSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final offline = context.watch<OfflineBibles>();
+    final scheme = Theme.of(context).colorScheme;
+    final muted = scheme.onSurface.withValues(alpha: 0.6);
+    final usage = offline.usageBytes;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final v in BibleStore.versions)
+          ListTile(
+            leading: SizedBox(
+              width: 44,
+              child: Text(
+                v,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            title: Text(BibleStore.versionName(v)),
+            subtitle: offline.saving == v
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: LinearProgressIndicator(
+                      value: offline.total == 0
+                          ? null
+                          : offline.done / offline.total,
+                    ),
+                  )
+                : offline.errors[v] != null
+                ? Text(
+                    offline.errors[v]!,
+                    style: TextStyle(color: scheme.error),
+                  )
+                : Text(
+                    offline.isSaved(v)
+                        ? 'Saved on this device'
+                        : 'About ${offline.megabytes(v)} MB',
+                  ),
+            trailing: offline.saving == v
+                ? TextButton(onPressed: offline.stop, child: const Text('Stop'))
+                : offline.isSaved(v)
+                ? TextButton(
+                    onPressed: () => offline.remove(v),
+                    child: const Text('Remove'),
+                  )
+                : FilledButton.tonal(
+                    onPressed: offline.saving == null
+                        ? () => offline.save(v)
+                        : null,
+                    child: const Text('Save'),
+                  ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            'A saved Bible opens without a connection, along with search, topics and cross-references. '
+            'Chapters you’ve read are kept too. Word Study and the interlinear need a connection for chapters '
+            'you haven’t opened yet. Add this page to your home screen to open Bible Seek like an app.'
+            '${usage == null ? '' : ' Bible Seek is using ${(usage / 1048576).toStringAsFixed(usage < 10485760 ? 1 : 0)} MB on this device.'}',
+            style: TextStyle(fontSize: 12, height: 1.4, color: muted),
+          ),
+        ),
+      ],
+    );
   }
 }

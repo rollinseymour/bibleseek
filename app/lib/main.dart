@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,10 +17,17 @@ import 'more/auto_backups.dart';
 import 'plans/plans.dart';
 import 'reader/read_aloud.dart';
 import 'settings/settings_model.dart';
+import 'web/offline.dart';
 import 'wordstudy/lexicon.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Roboto ships in the journal PDF; Apache 2.0 asks for its notice.
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Roboto',
+    ], await rootBundle.loadString('assets/fonts/Roboto-LICENSE.txt'));
+  });
   final prefs = Prefs(await SharedPreferences.getInstance());
   final store = BibleStore();
   AutoBackups.schedule(prefs);
@@ -43,6 +52,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => MemoryVerseStore(prefs)),
         ChangeNotifierProvider(create: (_) => PlanStore(prefs)),
         ChangeNotifierProvider(create: (_) => ReadAloudService(prefs)),
+        ChangeNotifierProvider(create: (_) => OfflineBibles(library)),
       ],
       child: const BibleSeekApp(),
     ),

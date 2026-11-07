@@ -9,6 +9,8 @@ import 'package:web/web.dart' as web;
 /// `/read/content/...` when the app is served under `/read/`.
 Uri contentUri(String path) => Uri.parse(web.document.baseURI).resolve(path);
 
+bool get isOnline => web.window.navigator.onLine;
+
 void downloadTextFile(
   String filename,
   String text, {
