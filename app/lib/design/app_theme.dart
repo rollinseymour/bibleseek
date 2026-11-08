@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// App-wide theme, distinct from the reader-only palettes. Values match the
-/// iOS app; the brand green is tone-shifted per theme for text contrast.
+/// iOS app, except Light, which is a softer off-white here because a white
+/// page on a computer screen is glaring. The brand green is tone-shifted per
+/// theme for text contrast.
 enum AppThemeKind {
   light(
     'Light',
     AppPalette(
-      scaffold: Color(0xFFF7F7F4),
-      surface: Color(0xFFFFFFFF),
+      scaffold: Color(0xFFEDEBE5),
+      surface: Color(0xFFF6F5F1),
       onSurface: Color(0xFF1B1B1B),
       primary: Color(0xFF0B7355),
       onPrimary: Color(0xFFFFFFFF),

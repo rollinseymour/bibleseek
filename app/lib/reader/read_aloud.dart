@@ -333,8 +333,7 @@ class ReadAloudBar extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 560),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
-        color: (palette.isDark ? const Color(0xFF2A2A2E) : Colors.white)
-            .withValues(alpha: 0.94),
+        color: palette.panel.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
@@ -443,8 +442,7 @@ class ListenButton extends StatelessWidget {
   Widget build(BuildContext context) => Tooltip(
     message: 'Listen to this chapter',
     child: Material(
-      color: (palette.isDark ? const Color(0xFF2A2A2E) : Colors.white)
-          .withValues(alpha: 0.94),
+      color: palette.panel.withValues(alpha: 0.94),
       shape: CircleBorder(
         side: BorderSide(color: palette.accent.withValues(alpha: 0.25)),
       ),

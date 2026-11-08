@@ -83,4 +83,10 @@ class ReaderPalette {
   }
 
   bool get isDark => background.computeLuminance() < 0.4;
+
+  /// Floating panels over the page: a little lighter than the page itself,
+  /// rather than pure white on a toned-down background.
+  Color get panel => isDark
+      ? const Color(0xFF2A2A2E)
+      : Color.lerp(background, Colors.white, 0.5)!;
 }

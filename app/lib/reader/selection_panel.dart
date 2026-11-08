@@ -89,7 +89,6 @@ class _SelectionPanelState extends State<SelectionPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = widget.palette.isDark;
     return GestureDetector(
       onVerticalDragEnd: (d) {
         if ((d.primaryVelocity ?? 0) > 150) widget.onDismiss();
@@ -101,9 +100,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 560),
             decoration: BoxDecoration(
-              color: (dark ? const Color(0xFF2A2A2E) : Colors.white).withValues(
-                alpha: 0.86,
-              ),
+              color: widget.palette.panel.withValues(alpha: 0.86),
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: _fg.withValues(alpha: 0.08)),
               boxShadow: [
