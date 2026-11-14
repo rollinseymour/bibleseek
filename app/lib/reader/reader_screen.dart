@@ -723,12 +723,24 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final picked = await showVerseCompare(
       context,
       bookCode: model.bookCode,
-      reference: '${model.bookName} ${model.chapter}:$v',
+      bookName: model.bookName,
       chapter: model.chapter,
+      verses: [for (final verse in model.verses) verse.number],
       verse: v,
       currentVersion: model.version,
     );
-    if (picked != null) model.switchVersion(picked);
+    if (picked == null) return;
+    if (picked.verse == v) {
+      model.switchVersion(picked.version);
+    } else {
+      // Stepped to another verse in the sheet: open the translation there.
+      model.move(
+        model.bookCode,
+        model.chapter,
+        verse: picked.verse,
+        version: picked.version,
+      );
+    }
   }
 
   void _memorize() {

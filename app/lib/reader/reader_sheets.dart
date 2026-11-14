@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../annotations/highlight_palette.dart';
@@ -729,119 +732,176 @@ class _NoteEditorState extends State<_NoteEditor> {
 
 // MARK: compare
 
-/// One verse in every translation; tapping one switches the reader to it.
-Future<String?> showVerseCompare(
+/// One verse in every translation, with arrows (or the arrow keys) to step
+/// through the chapter's verses. Tapping a translation switches the reader to
+/// it, at whichever verse was showing.
+Future<({String version, int verse})?> showVerseCompare(
   BuildContext context, {
   required String bookCode,
-  required String reference,
+  required String bookName,
   required int chapter,
+  required List<int> verses,
   required int verse,
   required String currentVersion,
 }) => _sheet(
   context,
-  (_) => _Compare(bookCode, reference, chapter, verse, currentVersion),
+  (_) => _Compare(bookCode, bookName, chapter, verses, verse, currentVersion),
   heightFactor: 0.7,
 );
 
-class _Compare extends StatelessWidget {
+class _Compare extends StatefulWidget {
   const _Compare(
     this.bookCode,
-    this.reference,
+    this.bookName,
     this.chapter,
+    this.verses,
     this.verse,
     this.currentVersion,
   );
   final String bookCode;
-  final String reference;
+  final String bookName;
   final int chapter;
+
+  /// The chapter's verse numbers; the arrows stay within them.
+  final List<int> verses;
   final int verse;
   final String currentVersion;
+
+  @override
+  State<_Compare> createState() => _CompareState();
+}
+
+class _CompareState extends State<_Compare> {
+  late int _index = max(0, widget.verses.indexOf(widget.verse));
+
+  int get _verse =>
+      widget.verses.isEmpty ? widget.verse : widget.verses[_index];
+
+  void _step(int by) {
+    final i = _index + by;
+    if (i < 0 || i >= widget.verses.length) return;
+    setState(() => _index = i);
+  }
 
   @override
   Widget build(BuildContext context) {
     final store = context.read<BibleStore>();
     final settings = context.read<SettingsModel>();
     final scheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        _SheetTitle('Compare $reference'),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: [
-              for (final v in BibleStore.versions)
-                Card(
-                  elevation: 0,
-                  color: v == currentVersion
-                      ? scheme.primary.withValues(alpha: 0.1)
-                      : scheme.onSurface.withValues(alpha: 0.04),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => Navigator.pop(context, v),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+    final verse = _verse;
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _step(-1),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () => _step(1),
+      },
+      child: Focus(
+        autofocus: true,
+        child: Column(
+          children: [
+            _SheetTitle(
+              'Compare ${widget.bookName} ${widget.chapter}:$verse',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Previous verse',
+                    onPressed: _index > 0 ? () => _step(-1) : null,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  IconButton(
+                    tooltip: 'Next verse',
+                    onPressed: _index < widget.verses.length - 1
+                        ? () => _step(1)
+                        : null,
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                children: [
+                  for (final v in BibleStore.versions)
+                    Card(
+                      elevation: 0,
+                      color: v == widget.currentVersion
+                          ? scheme.primary.withValues(alpha: 0.1)
+                          : scheme.onSurface.withValues(alpha: 0.04),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () =>
+                            Navigator.pop(context, (version: v, verse: verse)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                v,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: scheme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  BibleStore.versionName(v),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: scheme.onSurface.withValues(
-                                      alpha: 0.55,
+                              Row(
+                                children: [
+                                  Text(
+                                    v,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.primary,
                                     ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      BibleStore.versionName(v),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: scheme.onSurface.withValues(
+                                          alpha: 0.55,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (v == widget.currentVersion)
+                                    Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: scheme.primary,
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              FutureBuilder(
+                                future: store.verseText(
+                                  v,
+                                  widget.bookCode,
+                                  widget.chapter,
+                                  verse,
+                                ),
+                                builder: (context, snap) => Text(
+                                  snap.hasError
+                                      ? 'Couldn’t load this translation.'
+                                      : (snap.data ?? '…'),
+                                  style: readerTextStyle(
+                                    settings.readerFont,
+                                    fontSize: 16,
+                                    height: 1.5,
+                                    color: scheme.onSurface,
                                   ),
                                 ),
                               ),
-                              if (v == currentVersion)
-                                Icon(
-                                  Icons.check,
-                                  size: 16,
-                                  color: scheme.primary,
-                                ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          FutureBuilder(
-                            future: store.verseText(
-                              v,
-                              bookCode,
-                              chapter,
-                              verse,
-                            ),
-                            builder: (context, snap) => Text(
-                              snap.hasError
-                                  ? 'Couldn’t load this translation.'
-                                  : (snap.data ?? '…'),
-                              style: readerTextStyle(
-                                settings.readerFont,
-                                fontSize: 16,
-                                height: 1.5,
-                                color: scheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              const SizedBox(height: 12),
-            ],
-          ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
