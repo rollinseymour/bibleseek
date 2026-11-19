@@ -116,6 +116,70 @@ void main(List<String> args) {
     }
     stdout.writeln('copied $n files from ${entry.key}');
   }
+
+  _packCrossRefs(args[0], books);
+}
+
+/// Most cross-references kept for one verse; OpenBible.info lists up to 97.
+const maxCrossRefs = 30;
+
+/// One file per book, `web/content/crossrefs/<BOOK>.json`:
+/// {"CH:V": ["BOOK:CH:V", "BOOK:CH:V-END", …]}. The app's hand-picked list
+/// (cross_refs.json) comes first, then OpenBible.info's cross-references
+/// (CC BY 4.0) by readers' votes, leaving out unvoted and down-voted ones.
+void _packCrossRefs(String assets, List<Map<String, dynamic>> books) {
+  final out = Directory('web/content/crossrefs');
+  if (out.existsSync()) out.deleteSync(recursive: true);
+  final curated =
+      (jsonDecode(File('$assets/cross_refs.json').readAsStringSync())
+              as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, (v as List).cast<String>()));
+  num score(Map<String, dynamic> r) => (r['score'] as num?) ?? 0;
+  var total = 0;
+  for (final b in books) {
+    final code = b['id'] as String;
+    final refs = <String, List<String>>{};
+    for (var ch = 1; ch <= (b['numberOfChapters'] as int); ch++) {
+      final file = _read('$assets/BibleApi/d/open-cross-ref/$code/$ch.json');
+      final open = {
+        for (final v
+            in ((file?['chapter']?['content'] as List?) ?? const [])
+                .cast<Map<String, dynamic>>())
+          v['verse'] as int: (v['references'] as List)
+              .cast<Map<String, dynamic>>(),
+      };
+      final numbers = {
+        ...open.keys,
+        for (final k in curated.keys)
+          if (k.startsWith('$code:$ch:')) int.parse(k.split(':')[2]),
+      };
+      for (final n in numbers.toList()..sort()) {
+        final list = [...?curated['$code:$ch:$n']];
+        // Highest votes first; equal votes keep OpenBible's order.
+        final ranked =
+            [
+              for (final (i, r) in (open[n] ?? const []).indexed)
+                if (score(r) > 0) (i, r),
+            ]..sort((a, b) {
+              final d = score(b.$2).compareTo(score(a.$2));
+              return d != 0 ? d : a.$1.compareTo(b.$1);
+            });
+        for (final (_, r) in ranked) {
+          final start = '${r['book']}:${r['chapter']}:${r['verse']}';
+          if (list.any((s) => s == start || s.startsWith('$start-'))) continue;
+          final end = r['endVerse'];
+          list.add(end != null && end != r['verse'] ? '$start-$end' : start);
+        }
+        if (list.isEmpty) continue;
+        refs['$ch:$n'] = list.take(maxCrossRefs).toList();
+        total += refs['$ch:$n']!.length;
+      }
+    }
+    _write('${out.path}/$code.json', refs);
+  }
+  stdout.writeln(
+    'wrote cross-references for ${books.length} books ($total references)',
+  );
 }
 
 /// Translations with a keyword-search file (the ASV red-letter edition has the same text).
@@ -123,7 +187,6 @@ const searchFolders = {'kjv', 'asv', 'bsb', 'web'};
 
 const dataFiles = [
   'topics_enriched.json',
-  'cross_refs.json',
   'strongs_seed.json',
   'bible_names.json',
   'hitchcock_names.json',

@@ -11,69 +11,79 @@ import '../reader/reader_model.dart';
 import '../settings/settings_model.dart';
 import '../widgets/verse_text.dart';
 
-/// Treasury of Scripture Knowledge cross-references from `cross_refs.json`
-/// (`{"BOOK:CH:V": ["BOOK:CH:V", …]}`).
+/// Cross-references from `content/crossrefs/<BOOK>.json`
+/// (`{"CH:V": ["BOOK:CH:V", "BOOK:CH:V-END", …]}`): the app's hand-picked
+/// list first, then OpenBible.info's by readers' votes (tool/pack_content.dart).
 class CrossReferences {
-  static Future<Map<String, List<String>>>? _loaded;
+  static final _books = <String, Future<Map<String, Object?>>>{};
 
-  static Future<Map<String, List<String>>> _load(BibleStore store) =>
-      _loaded ??= () async {
+  static Future<Map<String, Object?>> _load(String book) =>
+      _books.putIfAbsent(book, () async {
         try {
-          final raw =
-              await store.data('cross_refs.json') as Map<String, Object?>;
-          return {
-            for (final e in raw.entries)
-              e.key: (e.value as List).whereType<String>().toList(),
-          };
+          return await BibleStore.getJson('content/crossrefs/$book.json')
+              as Map<String, Object?>;
         } catch (_) {
-          _loaded = null;
+          _books.remove(book);
           rethrow;
         }
-      }();
+      });
 
   static Future<List<String>> related(
-    BibleStore store,
     String book,
     int chapter,
     int verse,
-  ) async => (await _load(store))['$book:$chapter:$verse'] ?? const [];
+  ) async =>
+      ((await _load(book))['$chapter:$verse'] as List?)
+          ?.whereType<String>()
+          .toList() ??
+      const [];
 }
 
 class RelatedVerse {
   const RelatedVerse(this.reference, this.verse, this.target);
   final String reference;
+
+  /// The first verse of a range.
   final Verse? verse;
   final ReaderTarget target;
 }
 
-/// Resolves "BOOK:CH:V" triples to references and verse text in [version].
+/// Resolves "BOOK:CH:V" and "BOOK:CH:V-END" references to their names and
+/// verse text in [version], all at once.
 Future<List<RelatedVerse>> resolveTriples(
   BuildContext context,
-  List<String> triples,
+  List<String> refs,
   String version,
 ) async {
   final library = context.read<BibleLibrary>();
   final store = context.read<BibleStore>();
   final redLetter = context.read<SettingsModel>().redLetter;
-  final out = <RelatedVerse>[];
-  for (final triple in triples) {
-    final p = triple.split(':');
-    final ch = p.length == 3 ? int.tryParse(p[1]) : null;
-    final v = p.length == 3 ? int.tryParse(p[2]) : null;
-    if (ch == null || v == null) continue;
+  Future<RelatedVerse?> resolve(String ref) async {
+    final p = ref.split(':');
+    if (p.length != 3) return null;
+    final span = p[2].split('-');
+    final ch = int.tryParse(p[1]);
+    final v = int.tryParse(span[0]);
+    final end = span.length == 2 ? int.tryParse(span[1]) : null;
+    if (ch == null || v == null) return null;
     Verse? verse;
     try {
       verse = await store.verse(version, p[0], ch, v, redLetter: redLetter);
     } catch (_) {}
-    out.add(
-      RelatedVerse(
-        '${library.name(p[0])} $ch:$v',
-        verse,
-        ReaderTarget(bookCode: p[0], chapter: ch, verse: v, version: version),
+    return RelatedVerse(
+      '${library.name(p[0])} $ch:$v${end == null ? '' : '–$end'}',
+      verse,
+      ReaderTarget(
+        bookCode: p[0],
+        chapter: ch,
+        verse: v,
+        endVerse: end,
+        version: version,
       ),
     );
   }
-  return out;
+
+  return (await Future.wait(refs.map(resolve))).nonNulls.toList();
 }
 
 class _RelatedTile extends StatelessWidget {
@@ -115,6 +125,7 @@ class _CrossReferencesScreenState extends State<CrossReferencesScreen> {
   Timer? _debounce;
   String _source = '';
   List<RelatedVerse> _results = const [];
+  bool _failed = false;
   int _token = 0;
 
   @override
@@ -137,22 +148,30 @@ class _CrossReferencesScreenState extends State<CrossReferencesScreen> {
       setState(() {
         _source = '';
         _results = const [];
+        _failed = false;
       });
       return;
     }
     final version = ReadingPosition.load(context.read())?.version ?? 'KJV';
-    final triples = await CrossReferences.related(
-      context.read<BibleStore>(),
-      t.bookCode,
-      t.chapter,
-      t.verse!,
-    );
+    final List<String> triples;
+    try {
+      triples = await CrossReferences.related(t.bookCode, t.chapter, t.verse!);
+    } catch (_) {
+      if (!mounted || token != _token) return;
+      setState(() {
+        _source = '${library.name(t.bookCode)} ${t.chapter}:${t.verse}';
+        _results = const [];
+        _failed = true;
+      });
+      return;
+    }
     if (!mounted) return;
     final results = await resolveTriples(context, triples, version);
     if (!mounted || token != _token) return;
     setState(() {
       _source = '${library.name(t.bookCode)} ${t.chapter}:${t.verse}';
       _results = results;
+      _failed = false;
     });
   }
 
@@ -196,7 +215,9 @@ class _CrossReferencesScreenState extends State<CrossReferencesScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No bundled cross-references for $_source yet. Try a verse from the Gospels or Romans.',
+                      _failed
+                          ? 'Couldn’t load cross-references. Check your connection and try again.'
+                          : 'No cross-references for $_source.',
                       style: TextStyle(color: muted),
                     ),
                   ),
@@ -257,22 +278,20 @@ Future<void> showVerseRelated(
   '${context.read<BibleLibrary>().name(book)} $chapter:$verse',
   _RelatedList(
     load: (ctx) async {
-      final triples = await CrossReferences.related(
-        ctx.read<BibleStore>(),
-        book,
-        chapter,
-        verse,
-      );
+      final refs = await CrossReferences.related(book, chapter, verse);
       if (!ctx.mounted) return const [];
-      return [
-        (heading: null, items: await resolveTriples(ctx, triples, version)),
-      ];
+      return [_Group(items: await resolveTriples(ctx, refs, version))];
     },
     empty: 'No cross-references for this verse.',
   ),
 );
 
-/// Cross-references for every verse in a chapter, grouped by source verse.
+/// How many of each verse's cross-references the chapter view lists; the
+/// verse's own sheet has the rest.
+const _perVerseInChapter = 3;
+
+/// The strongest cross-references for every verse in a chapter, grouped by
+/// source verse.
 Future<void> showChapterRelated(
   BuildContext context, {
   required String book,
@@ -286,35 +305,52 @@ Future<void> showChapterRelated(
     'Related · $name $chapter',
     _RelatedList(
       load: (ctx) async {
-        final store = ctx.read<BibleStore>();
-        final groups = <({String? heading, List<RelatedVerse> items})>[];
-        for (final v in verses) {
-          final triples = await CrossReferences.related(
-            store,
-            book,
-            chapter,
-            v,
-          );
-          if (triples.isEmpty || !ctx.mounted) continue;
-          groups.add((
+        Future<_Group?> group(int v) async {
+          final refs = await CrossReferences.related(book, chapter, v);
+          if (refs.isEmpty || !ctx.mounted) return null;
+          return _Group(
             heading: '$name $chapter:$v',
-            items: await resolveTriples(ctx, triples, version),
-          ));
+            items: await resolveTriples(
+              ctx,
+              refs.take(_perVerseInChapter).toList(),
+              version,
+            ),
+            total: refs.length,
+            showAll: (c) => showVerseRelated(
+              c,
+              book: book,
+              chapter: chapter,
+              verse: v,
+              version: version,
+            ),
+          );
         }
-        return groups;
+
+        return (await Future.wait(verses.map(group))).nonNulls.toList();
       },
-      empty:
-          'No bundled cross-references for this chapter. Try a chapter in the Gospels or Romans.',
+      empty: 'No cross-references for this chapter.',
     ),
   );
 }
 
+class _Group {
+  const _Group({
+    required this.items,
+    this.heading,
+    this.total = 0,
+    this.showAll,
+  });
+  final String? heading;
+  final List<RelatedVerse> items;
+
+  /// The verse's full count, when [items] is only the first few.
+  final int total;
+  final void Function(BuildContext)? showAll;
+}
+
 class _RelatedList extends StatefulWidget {
   const _RelatedList({required this.load, required this.empty});
-  final Future<List<({String? heading, List<RelatedVerse> items})>> Function(
-    BuildContext,
-  )
-  load;
+  final Future<List<_Group>> Function(BuildContext) load;
   final String empty;
 
   @override
@@ -347,14 +383,31 @@ class _RelatedListState extends State<_RelatedList> {
           for (final g in groups) ...[
             if (g.heading != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                child: Text(
-                  g.heading!,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        g.heading!,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    if (g.showAll != null && g.total > g.items.length)
+                      TextButton(
+                        onPressed: () => g.showAll!(context),
+                        child: Text('All ${g.total}'),
+                      ),
+                  ],
                 ),
               ),
             for (final r in g.items)
-              _RelatedTile(r, onOpened: () => Navigator.pop(context)),
+              _RelatedTile(
+                r,
+                // Closes this sheet and the chapter sheet under an "All" list.
+                onOpened: () => Navigator.of(
+                  context,
+                ).popUntil((route) => route is! ModalBottomSheetRoute),
+              ),
           ],
         ],
       );

@@ -24,6 +24,13 @@ class AboutScreen extends StatelessWidget {
           'morpheme tags condensed and stored per chapter.',
     ),
     (
+      'Cross-References',
+      'Cross-references come from OpenBible.info’s Bible Cross References (www.openbible.info/labs/cross-references), '
+          'licensed under CC BY 4.0 (creativecommons.org/licenses/by/4.0). The data was reformatted for this app: '
+          'stored per book, ordered by readers’ votes, references without votes left out, and at most 30 kept per verse. '
+          'A short hand-picked list is shown ahead of them.',
+    ),
+    (
       'Name Meanings',
       'Biblical name meanings use BibleData by Brady Stephenson (github.com/bradystephenson/bible-data), licensed under '
           'CC BY 4.0 (creativecommons.org/licenses/by/4.0). For names outside that set, meanings fall back to '

@@ -23,11 +23,15 @@ class OfflineBibles extends ChangeNotifier {
     'content/bible/books.json',
     'content/data/bible_names.json',
     'content/data/channels.json',
-    'content/data/cross_refs.json',
     'content/data/hitchcock_names.json',
     'content/data/strongs_seed.json',
     'content/data/topics_enriched.json',
     'content/data/videos.json',
+  ];
+
+  /// Cross-references, one file per book, also saved with any Bible.
+  List<String> get _crossRefs => [
+    for (final b in library.books) 'content/crossrefs/${b.id}.json',
   ];
 
   /// Rough download sizes, for the Save button.
@@ -110,7 +114,7 @@ class OfflineBibles extends ChangeNotifier {
       final cache = await _open();
       final have = await _cached(cache);
       final todo = [
-        for (final p in [..._shared, ..._paths(version)])
+        for (final p in [..._shared, ..._crossRefs, ..._paths(version)])
           if (!have.contains(_url(p))) _url(p),
       ];
       total = todo.length;

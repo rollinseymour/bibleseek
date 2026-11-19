@@ -21,6 +21,10 @@ deploy doesn't need the source assets:
 dart run tool/pack_content.dart /path/to/bibleseek/lib/assets
 ```
 
+Cross-references (`web/content/crossrefs/`) merge the app's hand-picked
+`cross_refs.json` with OpenBible.info's set from `BibleApi/d/open-cross-ref`
+(CC BY 4.0, credited in About), which the iOS app doesn't bundle.
+
 ## Deploy
 
 `.github/workflows/deploy.yml` builds the Astro site, builds this app with
